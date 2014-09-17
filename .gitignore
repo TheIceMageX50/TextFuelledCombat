@@ -4,25 +4,12 @@ packages/
 *.js.deps
 *.js.map
 
-# Include when developing application packages
-pubspec.lock
-
 # Avoid committing generated JavaScript files
 *.dart.js
 
 # =========================
 # Operating System Files
 # =========================
-
-# OSX
-# =========================
-
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Icon must ends with two \r.
-Icon
 
 # Thumbnails
 ._*
