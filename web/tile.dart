@@ -11,7 +11,6 @@ class Tile
   
   Tile(TileType type)
   {
-    //_moveCost = cost;
     this._type = type;
     switch (type) {
       case TileType.WOOD_TILE : _traversable = true; 

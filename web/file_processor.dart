@@ -29,7 +29,7 @@ class FileProcessor
       if (_charCounts.containsKey(fileText[i])) {
         _charCounts[fileText[i]]++;
       } else {
-        //handle case where current char does not exist as a Map key.
+        //TODO handle case where current char does not exist as a Map key.
       }
     }
   }

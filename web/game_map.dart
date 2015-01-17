@@ -7,22 +7,22 @@ part of TextFueledCombat;
  */
 class GameMap
 {
-  List<Tile> _tiles;
+  Map<TileType, Tile> _tileTypes;
   Array2d<int> _grid;
   
   GameMap(int width, int height)
   {
     //create an integer 2D array
     _grid = new Array2d(width, height, defaultValue: int);
-    _tiles = new List<Tile>();
+    _tileTypes = new Map<TileType, Tile>();
   }
   
-  void addTile(Tile tile, int row, int col)
+  void addTile(TileType type, int row, int col)
   {
-    if (!_tiles.contains(tile)) {
-      _tiles.add(tile);
+    if (!_tileTypes.containsKey(type)) {
+      _tileTypes[type] = new Tile(type);
     }
-    _grid[row][col] = tile.getType().value;
+    _grid[row][col] = type.value;
   }
   
   /**
@@ -30,11 +30,11 @@ class GameMap
    * just a mock-up done to illustrate how I would figure out what type of [Tile] is at a
    * given position.
    */
-  Tile whatTile(int row, int col)
+  TileType whatTile(int row, int col)
   {
     int tileVal = _grid[row][col];
-    return _tiles.firstWhere((Tile toTest) {
-      return toTest.getType().value == tileVal; 
+    return _tileTypes.keys.firstWhere((TileType toTest) {
+      return toTest.value == tileVal; 
     });
   }
 }

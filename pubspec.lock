@@ -9,3 +9,15 @@ packages:
     description: game_loop
     source: hosted
     version: "0.9.4"
+  p2:
+    description: p2
+    source: hosted
+    version: "0.5.5"
+  play_phaser:
+    description: play_phaser
+    source: hosted
+    version: "0.12.2"
+  play_pixi:
+    description: play_pixi
+    source: hosted
+    version: "0.10.6"
