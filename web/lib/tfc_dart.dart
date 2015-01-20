@@ -1,9 +1,11 @@
 library TextFueledCombat;
 
+import 'dart:html';
 //Third party code
 part '../array_2d.dart';
 part '../enum.dart';
 
+part '../file_processor.dart';
 part '../game_map.dart';
 part '../tile.dart';
 part '../tile_type_enum.dart';

@@ -9,12 +9,14 @@ class GameMap
 {
   Map<TileType, Tile> _tileTypes;
   Array2d<int> _grid;
+  FileProcessor fileProcessor;
   
   GameMap(int width, int height)
   {
     //create an integer 2D array
     _grid = new Array2d(width, height, defaultValue: int);
     _tileTypes = new Map<TileType, Tile>();
+    fileProcessor = new FileProcessor();
   }
   
   void addTile(TileType type, int row, int col)

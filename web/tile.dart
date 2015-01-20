@@ -13,10 +13,16 @@ class Tile
   {
     this._type = type;
     switch (type) {
-      case TileType.WOOD_TILE : _traversable = true; 
-                                _moveCost = 1;
+      case TileType.DIRT:
+      case TileType.GRASS:
+      case TileType.WATER:
+      case TileType.WOOD_TILE: _traversable = true; 
+                               _moveCost = 1;
       break;
-      case TileType.WOOD_WALL:
+      case TileType.DRY_LAND: _traversable = true;
+                              _moveCost = 2;
+      break;
+      case TileType.LAVA:
       case TileType.VOID: _traversable = false;
       break;
       default: throw new UnknownTileException('Invalid TileType value supplied.');
