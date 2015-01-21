@@ -1,6 +1,7 @@
 library TextFueledCombat;
 
 import 'dart:html';
+import 'dart:math';
 //Third party code
 part '../array_2d.dart';
 part '../enum.dart';
