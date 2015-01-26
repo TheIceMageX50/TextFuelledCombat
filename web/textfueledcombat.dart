@@ -1,10 +1,10 @@
 import 'lib/tfc_dart.dart';
 import 'package:play_phaser/phaser.dart';
+import 'dart:html';
 
 void main()
 {
 
-  print("CALLING CTOR");
   new Tfc();
   //Now, map is set up. Need to render
   //TODO Title screen and/or startup sequence?
@@ -23,10 +23,18 @@ class Tfc
         _addTile(i, j);
       }
     }
-    Game game = new Game(800, 600, AUTO, 'output');
-    State state = new MapRenderState();
-    game.state.add('maprender', state);
-    game.state.start('maprender');
+    Game game = new Game(800, 600, AUTO, 'canvasDiv');
+    State state, state2; 
+    state = new FileWaitState();
+    game.state.add('wait', state);
+    game.state.start('wait');
+    
+    //InputElement ie = querySelector('#test');
+    //while(ie.files.isEmpty); //loop until file is submitted
+    
+    state2 = new MapRenderState();
+    game.state.add('maprender', state2);
+    //game.state.start('maprender');
   }
   
   void _addTile(int i, int j)
@@ -40,6 +48,7 @@ class Tfc
   }
 }
 
+//Currently this is a state for testing rendering stuff
 class MapRenderState extends State
 {
   preload()
@@ -59,5 +68,33 @@ class MapRenderState extends State
         }
       }
     }
+  }
+}
+
+class FileWaitState extends State
+{
+  GameMap map;
+  InputElement ie;
+  
+  create()
+  {
+    TextStyle style = new TextStyle(font: "65px Arial", fill: "#ffffff", align: "center");
+    game.add.text(game.world.centerX, game.world.centerY, 'Waiting for text file...', style);
+  }
+  
+  update()
+  {
+    if (ie.files.isNotEmpty) {
+      map.fileProcessor.analyseTxtFile(ie.files[0])
+      .then((_) {
+        game.state.start('maprender');
+      });
+    }
+  }
+  
+  init([GameMap theMap])
+  {
+    map = theMap;
+    ie  = querySelector('#test');
   }
 }

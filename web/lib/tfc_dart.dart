@@ -2,6 +2,7 @@ library TextFueledCombat;
 
 import 'dart:html';
 import 'dart:math';
+import 'dart:async';
 //Third party code
 part '../array_2d.dart';
 part '../enum.dart';

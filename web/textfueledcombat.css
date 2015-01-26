@@ -12,18 +12,15 @@ h1, p {
   color: #333;
 }
 
-#sample_container_id {
-  width: 100%;
-  height: 400px;
-  position: relative;
-  border: 1px solid #ccc;
-  background-color: #fff;
+#canvasDiv {
+  margin-bottom: 30px;
 }
 
-#sample_text_id {
-  font-size: 24pt;
+#game-main {
+  margin: auto;
+  width: 50%;
+}
+
+#file-input {
   text-align: center;
-  margin-top: 140px;
-  -webkit-user-select: none;
-  user-select: none;
 }

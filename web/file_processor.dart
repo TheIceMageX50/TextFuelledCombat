@@ -12,27 +12,29 @@ class FileProcessor
     _charTileMappings = new Map<String, int>();
   }
   
-  analyseTxtFile(File txtFile)
+  Future<bool> analyseTxtFile(File txtFile)
   {
     FileReader reader = new FileReader();
     String fileText = "";
-    //Completer fileIsRead = new Completer();
+    Completer fileIsRead = new Completer();
     
+    //When file text has been read in, get it and analyse it.
     reader.onLoadEnd.listen((e) {
       //do something
       fileText = e.target.result;
-      //fileIsRead.complete(true);
+      _setupCharCountMap();
+      for (int i = 0; i < fileText.length; i++) {
+        if (_charCounts.containsKey(fileText[i])) {
+          _charCounts[fileText[i]]++;
+        } else {
+          //TODO handle case where current char does not exist as a Map key.
+        }
+      }
+      fileIsRead.complete(true);
     });
     reader.readAsText(txtFile);
     
-    _setupCharCountMap();
-    for (int i = 0; i < fileText.length; i++) {
-      if (_charCounts.containsKey(fileText[i])) {
-        _charCounts[fileText[i]]++;
-      } else {
-        //TODO handle case where current char does not exist as a Map key.
-      }
-    }
+    return fileIsRead.future;
   }
   
   _setupCharCountMap()
