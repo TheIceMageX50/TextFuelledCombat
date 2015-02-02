@@ -7,9 +7,10 @@ class FileProcessor
   
   FileProcessor()
   {
-    //constructor
     _charCounts = new Map<String, int>();
     _charTileMappings = new Map<String, int>();
+    _setupCharCountMap();
+    _setupCharMapping();
   }
   
   Future<bool> analyseTxtFile(File txtFile)
@@ -22,7 +23,6 @@ class FileProcessor
     reader.onLoadEnd.listen((e) {
       //do something
       fileText = e.target.result;
-      _setupCharCountMap();
       for (int i = 0; i < fileText.length; i++) {
         if (_charCounts.containsKey(fileText[i])) {
           _charCounts[fileText[i]]++;

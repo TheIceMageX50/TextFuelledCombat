@@ -49,23 +49,26 @@ class GameMap
     });
   }
   
-  void generateMap(File file)
+  Future<bool> generateMap(File file)
   {
-    fileProcessor.analyseTxtFile(file);
-    //TODO Consider somehow logging what characters were (not?) used to make the map so that other parts of game do not use
-    //same chars? But how to impose min. file size?
-    List<String> countKeys = fileProcessor._charCounts.keys.toList();
-    Random rng = new Random();
-    int rand;
-    String randKey;
-    for (int i = 0; i < _grid.array.length; i++) {
-      for (int j = 0; j < _grid[0].length; j++) {
-        //for each "grid square" randomly pick a char from the list of keys and store the int value (representing a TileType)
-        //that that char maps to in the grid square.
-        rand = rng.nextInt(countKeys.length);
-        randKey = countKeys[rand];
-        _grid[i][j] = fileProcessor._charTileMappings[randKey];
-      }
-    }
+    return fileProcessor.analyseTxtFile(file)
+      .then((_) {
+        //TODO Consider somehow logging what characters were (not?) used 
+        //to make the map so that other parts of game do not use same chars?
+        //But how to impose min. file size?
+        List<String> countKeys = fileProcessor._charCounts.keys.toList();
+        Random rng = new Random();
+        int rand;
+        String randKey;
+        for (int i = 0; i < _grid.array.length; i++) {
+          for (int j = 0; j < _grid[0].length; j++) {
+            //for each "grid square" randomly pick a char from the list of keys and store the int value (representing a TileType)
+            //that that char maps to in the grid square.
+            rand = rng.nextInt(countKeys.length);
+            randKey = countKeys[rand];
+            _grid[i][j] = fileProcessor._charTileMappings[randKey];
+          }
+        }
+    });
   }
 }
