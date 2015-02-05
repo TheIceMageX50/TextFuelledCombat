@@ -64,11 +64,66 @@ class GameMap
           for (int j = 0; j < _grid[0].length; j++) {
             //for each "grid square" randomly pick a char from the list of keys and store the int value (representing a TileType)
             //that that char maps to in the grid square.
-            rand = rng.nextInt(countKeys.length);
-            randKey = countKeys[rand];
+            do {
+              rand = rng.nextInt(countKeys.length);
+              randKey = countKeys[rand];
+            } while (!_tileFitsWell(fileProcessor._charTileMappings[randKey], i, j));
             _grid[i][j] = fileProcessor._charTileMappings[randKey];
           }
         }
     });
+  }
+  
+  /**
+   * This function is used during map generation in attempt to prevent bad map
+   * configurations by ensuring a lot of untraversable terrain is not close
+   * together on the map. 
+   */
+  bool _tileFitsWell(int tileTypeInt, int row, int col)
+  {
+    TileType tileType = _tileTypes.keys
+    .firstWhere((TileType t) {
+      return t.value == tileTypeInt;
+    });
+    TileType temp;
+    int strikeCount = 0; //Track how many adjacent tiles are untraversable.
+                         //Two(?) strikes, and you're out.
+    
+    Tile tile = _tileTypes[tileType];
+    if (tile._traversable == true) {
+      //In this case a new traversable tile is being put in, so no problems.
+      return true;
+    } else {
+      //begin testing what tiles are around the current tile
+      //Test NW adjacent
+      if (row > 0 && col > 0) {
+        temp = this.whatTile(row - 1, col - 1);
+        if (!_tileTypes[temp]._traversable) {
+           strikeCount++;
+        }
+      }
+      //Test N adjacent
+      if (row > 0) {
+        temp = this.whatTile(row - 1, col);
+        if (!_tileTypes[temp]._traversable) {
+          strikeCount++;
+        }
+      }
+      //Test NE adjacent
+      if (row > 0 && col < _grid[0].length - 2) {
+        temp = this.whatTile(row - 1, col + 1);
+        if (!_tileTypes[temp]._traversable) {
+          strikeCount++;
+        }
+      }
+      //Test W adjacent
+      if (col > 0) {
+        temp = this.whatTile(row, col - 1);
+        if (!_tileTypes[temp]._traversable) {
+          strikeCount++;
+        }
+      }
+    }
+    return strikeCount < 2;
   }
 }
