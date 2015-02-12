@@ -6,7 +6,6 @@ void main()
 {
 
   new Tfc();
-  //Now, map is set up. Need to render
   //TODO Title screen and/or startup sequence?
 }
 
@@ -30,12 +29,8 @@ class Tfc
     game.state.add('wait', state);
     game.state.start('wait');
     
-    //InputElement ie = querySelector('#test');
-    //while(ie.files.isEmpty); //loop until file is submitted
-    
     state2 = new MapRenderState(map);
     game.state.add('maprender', state2);
-    //game.state.start('maprender');
   }
   
   void _addTile(int i, int j)
@@ -93,9 +88,11 @@ class MapRenderState extends State
           case TileType.WATER: game.add.sprite(j * 32, i * 32, 'water');
           break;
           case TileType.WOOD_TILE: game.add.sprite(j * 32, i * 32, 'wood');
+          break;
         }
       }
     }
+    //Map rendering is done, need to setup and render characters now.
   }
 }
 
