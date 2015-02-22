@@ -17,27 +17,56 @@ class Character
    * Of course, that is assuming moveCost == 1 on all tiles, which is not always
    * true.
    */
-  final int _hpMax;
+  int _hpMax;
   int _hpCurrent, _attackPower, _mobility;
-  Point<int> _pos;
+  Point _pos;
+  Sprite _sprite;
+  CharType _type;
   
-  Character(int hp, int attackPower, int mobility)
+  //REMOVER GETTER, 
+  Sprite get sprite => _sprite;
+  set sprite(Sprite sprite)
   {
-    _hpMax = hp;
+    _sprite = sprite;
+  }
+  
+  Character(CharType type, Point pos)
+  {
+    _pos = pos;
+    _type = type;
     
-    _attack = attack;
-    _mobility = mobility;
+    switch (type) {
+      case CharType.PLAYER: 
+        _hpMax = 100;
+        _attackPower = 10;
+        _mobility = 7;
+      break;
+      default: throw "Error: Invalid type argument supplied.";
+    }
   }
   
   attack(Character other)
   {
-    other._hpCurrent -= this._attack;
+    other._hpCurrent -= this._attackPower;
   }
   
-  moveTo(int x, int y)
+  moveTo(int x, int y, GameMap map, Game game)
   {
-    _pos.x = x;
-    _pos.y = y;
+    if (x < map.width && y < map.height && x >= 0 && y >= 0) {
+      _pos.x = x;
+      _pos.y = y;
+    } else {
+      //What are you doing? You can't move off the map...
+    }
+  }
+  
+  initSprite(Game game)
+  {
+    switch(_type) {
+      //32x32 are tile dimensions, 46 is height of sprite
+      case CharType.PLAYER: _sprite = game.add.sprite(_pos.x * 32 + 96, _pos.y * 32 + 64 - 46, 'roshan');
+      break;
+    }
   }
 }
 

@@ -1,5 +1,7 @@
 library TextFueledCombat;
 
+import 'package:play_phaser/phaser.dart';
+
 import 'dart:html';
 import 'dart:math';
 import 'dart:async';
@@ -7,6 +9,7 @@ import 'dart:async';
 part '../array_2d.dart';
 part '../enum.dart';
 
+part '../character.dart';
 part '../file_processor.dart';
 part '../game_map.dart';
 part '../tile.dart';

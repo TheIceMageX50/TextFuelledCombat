@@ -15,13 +15,8 @@ class Tfc
   
   Tfc()
   {
-    map = new GameMap(32, 32);
+    map = new GameMap(16, 16);
     
-    /*for (int i = 0; i < 32; i++) {
-      for (int j = 0; j < 32; j++) {
-        _addTile(i, j);
-      }
-    }*/
     Game game = new Game(800, 600, AUTO, 'canvasDiv');
     game.stage.setBackgroundColor(0xADD8E6);
     State state, state2; 
@@ -48,6 +43,7 @@ class Tfc
 class MapRenderState extends State
 {
   GameMap map;
+  Sprite playerChar;
   
   MapRenderState(GameMap map)
   {
@@ -56,6 +52,10 @@ class MapRenderState extends State
   
   preload()
   {
+    
+    //character sprites
+    game.load.image('roshan', 'roshan.png');
+    //tile sprites
     game.load.image('dirt', 'dirt.png');
     game.load.image('dryland', 'wood_ph.png');
     game.load.image('grass', 'grass.png');
@@ -71,28 +71,36 @@ class MapRenderState extends State
     //been given at this point.
     InputElement ie = querySelector('#test');
     ie.style.display = 'none';
+    final int mapOffsetX = 96, mapOffsetY = 32;
+
     
-    for (int i = 0; i < 20; i++) {
-      for (int j = 0; j < 20; j++) {
+    for (int i = 0; i < map.height; i++) {
+      for (int j = 0; j < map.width; j++) {
         switch(map.whatTile(i, j)) {
-          case TileType.DIRT: game.add.sprite(j * 32, i * 32, 'dirt');
+          //TODO Make Tile dimension variables so as not to hardcode 32
+          case TileType.DIRT: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'dirt');
           break;
-          case TileType.DRY_LAND: game.add.sprite(j * 32, i * 32, 'dryland');
+          case TileType.DRY_LAND: game.add.sprite(j * 32 + mapOffsetX , i * 32 + mapOffsetY, 'dryland');
           break;
-          case TileType.GRASS: game.add.sprite(j * 32, i * 32, 'grass');
+          case TileType.GRASS: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'grass');
           break;
-          case TileType.LAVA: game.add.sprite(j * 32, i * 32, 'lava');
+          case TileType.LAVA: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'lava');
           break;
-          case TileType.VOID: game.add.sprite(j * 32, i * 32, 'void');
+          case TileType.VOID: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'void');
           break;
-          case TileType.WATER: game.add.sprite(j * 32, i * 32, 'water');
+          case TileType.WATER: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'water');
           break;
-          case TileType.WOOD_TILE: game.add.sprite(j * 32, i * 32, 'wood');
+          case TileType.WOOD_TILE: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'wood');
           break;
         }
       }
     }
     //Map rendering is done, need to setup and render characters now.
+    Character player = new Character(CharType.PLAYER, new Point(0, 0));
+    player.initSprite(game);
+    //playerChar = game.add.sprite(10, 0, 'roshan');
+    game.add.tween(player.sprite)
+      .to({ 'x': player.sprite.position.x + 32}, 2000, Easing.Quadratic.InOut, true, 0, 0, false);
   }
 }
 
@@ -108,7 +116,7 @@ class FileWaitState extends State
   
   create()
   {
-    TextStyle style = new TextStyle(font: "65px Arial", fill: "#ffffff", align: "center");
+    TextStyle style = new TextStyle(font: "45px Arial", fill: "#ffffff", align: "center");
     game.add.text(game.world.centerX, game.world.centerY, 'Waiting for text file...', style);
   }
   

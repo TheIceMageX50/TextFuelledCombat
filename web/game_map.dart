@@ -11,6 +11,9 @@ class GameMap
   Array2d<int> _grid;
   FileProcessor fileProcessor;
   
+  int get width => _grid[0].length;
+  int get height => _grid.array.length;
+  
   GameMap(int width, int height)
   {
     //create an integer 2D array
@@ -124,6 +127,6 @@ class GameMap
         }
       }
     }
-    return strikeCount < 2;
+    return strikeCount < 1;
   }
 }
