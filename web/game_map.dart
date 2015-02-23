@@ -8,8 +8,10 @@ part of TextFueledCombat;
 class GameMap
 {
   Map<TileType, Tile> _tileTypes;
+  List<int> _traversableTypes;
   Array2d<int> _grid;
   FileProcessor fileProcessor;
+  Random _rng;
   
   int get width => _grid[0].length;
   int get height => _grid.array.length;
@@ -19,6 +21,9 @@ class GameMap
     //create an integer 2D array
     _grid = new Array2d(width, height);
     _tileTypes = new Map<TileType, Tile>();
+    _traversableTypes = new List<int>();
+    _rng = new Random();
+    
     //add an instance of each kind of tile to the map
     _tileTypes[TileType.DIRT] = new Tile(TileType.DIRT);
     _tileTypes[TileType.DRY_LAND] = new Tile(TileType.DRY_LAND);
@@ -29,6 +34,13 @@ class GameMap
     _tileTypes[TileType.WOOD_TILE] = new Tile(TileType.WOOD_TILE);
     
     fileProcessor = new FileProcessor();
+    //Build the list of all int values for traversable TileTypes. This is used in map
+    //generation to ensure certain parts of the map, e.g. the borders, are traversable.
+    _tileTypes.forEach((TileType tt, Tile tile) {
+      if (tile._traversable == true) {
+        _traversableTypes.add(tt.value);
+      }
+    });
   }
   
   void addTile(TileType type, int row, int col)
@@ -60,26 +72,31 @@ class GameMap
         //to make the map so that other parts of game do not use same chars?
         //But how to impose min. file size?
         List<String> countKeys = fileProcessor._charCounts.keys.toList();
-        Random rng = new Random();
         int rand;
         String randKey;
         for (int i = 0; i < _grid.array.length; i++) {
           for (int j = 0; j < _grid[0].length; j++) {
-            //for each "grid square" randomly pick a char from the list of keys and store the int value (representing a TileType)
-            //that that char maps to in the grid square.
-            do {
-              rand = rng.nextInt(countKeys.length);
-              randKey = countKeys[rand];
-            } while (!_tileFitsWell(fileProcessor._charTileMappings[randKey], i, j));
-            _grid[i][j] = fileProcessor._charTileMappings[randKey];
+            if (i == 0 || j == 0 || i == height - 1 || j == width - 1) {
+              //Dealing with a border tile, just roll for a traversable.
+              _grid[i][j] = _rollTraversableType();
+            } else {
+              //For each "grid square" randomly pick a char from the list of keys and store the
+              //int value (representing a TileType) that that char maps to in the grid square.
+              //Continue to reselect a char until a TileType that fits well is found.
+              do {
+                rand = _rng.nextInt(countKeys.length);
+                randKey = countKeys[rand];
+              } while (!_tileFitsWell(fileProcessor._charTileMappings[randKey], i, j));
+              _grid[i][j] = fileProcessor._charTileMappings[randKey];
+            }
           }
         }
     });
   }
   
   /**
-   * This function is used during map generation in attempt to prevent bad map
-   * configurations by ensuring a lot of untraversable terrain is not close
+   * This function is used during map generation in an attempt to prevent bad map
+   * configurations by ensuring that a lot of untraversable terrain is not close
    * together on the map. 
    */
   bool _tileFitsWell(int tileTypeInt, int row, int col)
@@ -128,5 +145,11 @@ class GameMap
       }
     }
     return strikeCount < 1;
+  }
+  
+  int _rollTraversableType()
+  {
+    int rand = _rng.nextInt(_traversableTypes.length);
+    return _traversableTypes[rand];
   }
 }
