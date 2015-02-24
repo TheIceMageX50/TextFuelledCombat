@@ -24,7 +24,7 @@ class Tfc
     game.state.add('wait', state);
     game.state.start('wait');
     
-    state2 = new MapRenderState(map);
+    state2 = new MapRenderState(map, 'assets');
     game.state.add('maprender', state2);
   }
   
@@ -43,26 +43,28 @@ class Tfc
 class MapRenderState extends State
 {
   GameMap map;
+  String assetPath;
   Sprite playerChar;
   
-  MapRenderState(GameMap map)
+  MapRenderState(GameMap map, String assetPath)
   {
     this.map = map;
+    this.assetPath = assetPath; 
   }
   
   preload()
   {
     
     //character sprites
-    game.load.image('roshan', 'roshan.png');
+    game.load.image('roshan', '$assetPath/roshan.png');
     //tile sprites
-    game.load.image('dirt', 'dirt.png');
-    game.load.image('dryland', 'wood_ph.png');
-    game.load.image('grass', 'grass.png');
-    game.load.image('lava', 'lava.png');
-    game.load.image('void', 'void.png');
-    game.load.image('water', 'water.png');
-    game.load.image('wood', 'wood_tile.png');
+    game.load.image('dirt', '$assetPath/dirt.png');
+    game.load.image('dryland', '$assetPath/wood_ph.png');
+    game.load.image('grass', '$assetPath/grass.png');
+    game.load.image('lava', '$assetPath/lava.png');
+    game.load.image('void', '$assetPath/void.png');
+    game.load.image('water', '$assetPath/water.png');
+    game.load.image('wood', '$assetPath/wood_tile.png');
   } 
   
   create()
