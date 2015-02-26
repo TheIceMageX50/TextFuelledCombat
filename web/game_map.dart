@@ -5,7 +5,7 @@ part of TextFueledCombat;
  * The [GameMap] class represents the layout of a map within the game where combat will take place.
  * It uses a 2D array to represent its grid.
  */
-class GameMap
+class GameMap implements TileBasedMap
 {
   Map<TileType, Tile> _tileTypes;
   List<int> _traversableTypes;
@@ -151,5 +151,38 @@ class GameMap
   {
     int rand = _rng.nextInt(_traversableTypes.length);
     return _traversableTypes[rand];
+  }
+  
+  //Method implementations mandated by TileBasedMap interface
+  int getWidthInTiles() => width;
+  int getHeightInTiles() => height;
+  
+  pathfinderVisted(int x, int y)
+  {
+    //probably won't be used, inherited intended is for debugging new heuristics
+  }
+  
+  //TODO Consider reworking for cases where some characters can move over
+  //"untraversable" tiles, e.g. flyers?
+  bool blocked(Mover mover, int x, int y) => _traversableTypes.contains(_grid[x][y]);
+  
+  double getCost(Mover mover, int startX, int startY, int targetX, int targetY)
+  {
+    //Cover our bases; this should only be used to test moving from one tile to another
+    //directly (nondiagonally!) adjacent tile.
+    if (targetX - startX !=0 && targetY - startY != 0) {
+      throw('Error: Diagonal movement not allowed.');
+    //Difference > 1 in either case means an attempt to assess moving to a tile that
+    //is not directly adjacent. This is out of scope of the intended use.
+    } else if (targetX - startX > 1 || targetY - startY > 1) {
+      throw('Error: Trying to assess moving to a tile that is not directly adjacent');
+    } else {
+      //If you get here, it's a valid tile (i.e. directly adjacent) to check!
+      int tileTypeInt = _grid[targetX][targetY];
+      TileType currType = _tileTypes.keys.firstWhere((TileType tt) {
+        return tileTypeInt == tt.value;
+      });
+      return _tileTypes[currType]._moveCost;
+    }
   }
 }

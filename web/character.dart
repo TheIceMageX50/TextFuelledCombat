@@ -4,7 +4,7 @@ part of TextFueledCombat;
  * Instances of this class are used to represent characters, creatures, etc. both
  * playable and nonplayable.
  */
-class Character
+class Character implements Mover
 {
   /* TODO split into individual comments?
    * _hp stores the Character's "Hit Points". Reaching 0 HP means that the Character

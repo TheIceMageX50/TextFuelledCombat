@@ -67,15 +67,13 @@ class AStarPathFinder implements Pathfinder
    * @see PathFinder#findPath(Mover, int, int, int, int)
    */
   Path findPath(Mover mover, int sx, int sy, int tx, int ty) {
-    // easy first check, if the destination is blocked, we can't get there
-
+    //Easy first check, if the destination is blocked, we can't get there.
     if (map.blocked(mover, tx, ty)) {
       return null;
     }
     
-    // initial state for A*. The closed group is empty. Only the starting
-
-    // tile is in the open list and it'e're already there
+    //Initial state for A*. The closed group is empty. Only the starting
+    //tile is in the open list and it's already there.
     _nodes[sx][sy].cost = 0;
     _nodes[sx][sy].depth = 0;
     _closed.clear();
@@ -102,45 +100,37 @@ class AStarPathFinder implements Pathfinder
 
       // them as next steps
 
-      for (int x=-1;x<2;x++) {
-        for (int y=-1;y<2;y++) {
+      for (int x = -1; x < 2; x++) {
+        for (int y = -1; y < 2; y++) {
           // not a neighbour, its the current tile
-
-          if ((x == 0) && (y == 0)) {
+          if (x == 0 && y == 0) {
             continue;
-          }
-          
+          } 
           // if we're not allowing diagonal movement then only one of x or y 
           //can be set.
-
           if (!_allowDiagMovement) {
-            if ((x != 0) && (y != 0)) {
+            if (x != 0 && y != 0) {
               continue;
             }
           }
-          
           // determine the location of the neighbour and evaluate it
-
           int xp = x + current._x;
           int yp = y + current._y;
           
           if (isValidLocation(mover,sx,sy,xp,yp)) {
-            // the cost to get to this node is cost the current plus the movement
-
-            // cost to reach this node. Note that the heursitic value is only used
-
-            // in the sorted open list
-
+            //the cost to get to this node is cost the current plus the movement
+            //cost to reach this node. Note that the heuristic value is only used
+            //in the sorted open list
             double nextStepCost = current._cost + getMovementCost(mover, current._x, current._y, xp, yp);
             Node neighbour = _nodes[xp][yp];
-            map.pathFinderVisited(xp, yp);
+            map.pathfinderVisited(xp, yp);
             
             // if the new cost we've determined for this node is lower than 
 
             // it has been previously makes sure the node hasn'e've
             // determined that there might have been a better path to get to
 
-            // this node so it needs to be re-evaluated
+            // this node so it needs to be reevaluated
 
             if (nextStepCost < neighbour._cost) {
               if (inOpenList(neighbour)) {
@@ -151,11 +141,9 @@ class AStarPathFinder implements Pathfinder
               }
             }
             
-            // if the node hasn't already been processed and discarded then
-
-            // reset it's cost to our current cost and add it as a next possible
-
-            // step (i.e. to the open list)
+            //if the node hasn't already been processed and discarded then
+            //reset it's cost to our current cost and add it as a next possible
+            //step (i.e. to the open list)
 
             if (!inOpenList(neighbour) && !(inClosedList(neighbour))) {
               neighbour._cost = nextStepCost;
@@ -168,19 +156,14 @@ class AStarPathFinder implements Pathfinder
       }
     }
 
-    // since we'e've run out of search 
-    // there was no path. Just return null
-
+    //Since we've run out of search there was no path. Just return null
     if (_nodes[tx][ty].parent == null) {
       return null;
     }
     
     // At this point we've definitely found a path so we can uses the parent
-
     // references of the nodes to find out way from the target location back
-
     // to the start recording the nodes on the way.
-
     Path path = new Path();
     Node target = _nodes[tx][ty];
     while (target != _nodes[sx][sy]) {

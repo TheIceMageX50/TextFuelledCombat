@@ -32,7 +32,7 @@ abstract class TileBasedMap
    * @param x The x coordinate of the tile that was visited
    * @param y The y coordinate of the tile that was visited
    */
-  pathFinderVisited(int x, int y);
+  pathfinderVisited(int x, int y);
   
   /**
    * Check if the given location is blocked, i.e. blocks movement of 
@@ -58,5 +58,6 @@ abstract class TileBasedMap
    * @param ty The y coordinate of the tile we're moving to
    * @return The relative cost of moving across the given tile
    */
+  //Does it NEED to return double??
   double getCost(Mover mover, int sx, int sy, int tx, int ty);
 }
