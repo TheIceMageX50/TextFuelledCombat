@@ -19,19 +19,21 @@ class Character implements Mover
    */
   int _hpMax;
   int _hpCurrent, _attackPower, _mobility;
+  String _name;
   Point _pos;
   Sprite _sprite;
   CharType _type;
   
-  //REMOVER GETTER, 
+  //REMOVE GETTER...or rather SETTER??
   Sprite get sprite => _sprite;
   set sprite(Sprite sprite)
   {
     _sprite = sprite;
   }
   
-  Character(CharType type, Point pos)
+  Character(String name, CharType type, Point pos)
   {
+    _name = name;
     _pos = pos;
     _type = type;
     
@@ -53,6 +55,11 @@ class Character implements Mover
   moveTo(int x, int y, GameMap map, Game game)
   {
     if (x < map.width && y < map.height && x >= 0 && y >= 0) {
+      //map.finder.findPath(this, sx, sy, tx, ty)
+      //unit is moving, blank its previous location in units array
+      map._units[_pos.x][_pos.y] = "";
+      //set new location
+      map._units[x][y] = _name;
       _pos.x = x;
       _pos.y = y;
     } else {
@@ -68,6 +75,8 @@ class Character implements Mover
       break;
     }
   }
+ 
+  operator== (Character other) => _name == other._name;
 }
 
 class CharType<int> extends Enum<int>

@@ -24,6 +24,7 @@ class Tile
       break;
       case TileType.LAVA:
       case TileType.VOID: _traversable = false;
+                          _moveCost = 1000;
       break;
       default: throw new UnknownTileException('Invalid TileType value supplied.');
     }
@@ -32,6 +33,9 @@ class Tile
   TileType getType() =>  _type;
   bool isTraversable() => _traversable;
   int getCost() => _moveCost;
+  
+  //For debugging purposes
+  String toString() => "_type: ${_type.value}, _traversable: $_traversable, _moveCost: $_moveCost";
   
   operator ==(Tile other) => _type == other._type;
 }

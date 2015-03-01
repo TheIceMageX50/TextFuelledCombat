@@ -45,16 +45,18 @@ class MapRenderState extends State
   GameMap map;
   String assetPath;
   Sprite playerChar;
+  List<Character> playerTeam, enemyTeam;
   
   MapRenderState(GameMap map, String assetPath)
   {
     this.map = map;
     this.assetPath = assetPath; 
+    playerTeam = new List<Character>();
+    enemyTeam = new List<Character>();
   }
   
   preload()
-  {
-    
+  {  
     //character sprites
     game.load.image('roshan', '$assetPath/roshan.png');
     //tile sprites
@@ -74,35 +76,63 @@ class MapRenderState extends State
     InputElement ie = querySelector('#test');
     ie.style.display = 'none';
     final int mapOffsetX = 96, mapOffsetY = 32;
-
+    Sprite temp;
     
     for (int i = 0; i < map.height; i++) {
       for (int j = 0; j < map.width; j++) {
         switch(map.whatTile(i, j)) {
           //TODO Make Tile dimension variables so as not to hardcode 32
-          case TileType.DIRT: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'dirt');
+          case TileType.DIRT: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'dirt');
           break;
-          case TileType.DRY_LAND: game.add.sprite(j * 32 + mapOffsetX , i * 32 + mapOffsetY, 'dryland');
+          case TileType.DRY_LAND: temp = game.add.sprite(j * 32 + mapOffsetX , i * 32 + mapOffsetY, 'dryland');
           break;
-          case TileType.GRASS: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'grass');
+          case TileType.GRASS: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'grass');
           break;
-          case TileType.LAVA: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'lava');
+          case TileType.LAVA: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'lava');
           break;
-          case TileType.VOID: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'void');
+          case TileType.VOID: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'void');
           break;
-          case TileType.WATER: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'water');
+          case TileType.WATER: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'water');
           break;
-          case TileType.WOOD_TILE: game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'wood');
+          case TileType.WOOD_TILE: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'wood');
           break;
         }
+        temp.inputEnabled = true;
+        temp.events.onInputDown.add(listenerTiles);
+        map.setSpriteAt(temp, j, i);
       }
     }
     //Map rendering is done, need to setup and render characters now.
-    Character player = new Character(CharType.PLAYER, new Point(0, 0));
-    player.initSprite(game);
-    //playerChar = game.add.sprite(10, 0, 'roshan');
-    game.add.tween(player.sprite)
-      .to({ 'x': player.sprite.position.x + 32}, 2000, Easing.Quadratic.InOut, true, 0, 0, false);
+    //Character player = new Character("Testguy", CharType.PLAYER, new Point(0, 0));
+    //player.initSprite(game);
+    playerChar = game.add.sprite(10, 0, 'roshan');
+    game.add.tween(playerChar)
+      .to({ 'x': playerChar.position.x + 32}, 2000, Easing.Quadratic.InOut, true, 0, 0, false);
+    playerChar.inputEnabled = true;
+    playerChar.events.onInputDown.add(listener);
+  }
+  
+  listener(GameObject go, Pointer p)
+  {
+    print("Clicked!");
+    //map.testFindPath(null);
+  }
+  
+  listenerTiles(Sprite sprite, Pointer p)
+  {
+    //bool to avoid some needless iterations, i.e. once the right tile is found
+    bool shouldEnd = false;
+    for (int i = 0; i < map.width; i++) {
+      for (int j = 0; j < map.height; j++) {
+        if (sprite == map.getSpriteAt(i, j)) {
+          print("Clicked on ($i,$j)");
+          break;
+        }
+      }
+      if (shouldEnd) {
+        break;
+      }
+    }
   }
 }
 

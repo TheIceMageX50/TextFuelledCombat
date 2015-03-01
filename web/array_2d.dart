@@ -47,4 +47,13 @@ class Array2d<T>
         array[x].add(defaultValue);
     }
   }
+  
+  String toString()
+  {
+    String ret = "";
+    for (int i = 0; i < array.length; i++) {
+      ret += array[i].toString() + ",\n";
+    }
+    return ret;
+  }
 }

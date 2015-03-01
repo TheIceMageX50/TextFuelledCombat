@@ -10,7 +10,10 @@ class GameMap implements TileBasedMap
   Map<TileType, Tile> _tileTypes;
   List<int> _traversableTypes;
   Array2d<int> _grid;
+  Array2d<String> _units;
+  Array2d<Sprite> _spriteGrid;
   FileProcessor fileProcessor;
+  Pathfinder finder;
   Random _rng;
   
   int get width => _grid[0].length;
@@ -19,10 +22,14 @@ class GameMap implements TileBasedMap
   GameMap(int width, int height)
   {
     //create an integer 2D array
-    _grid = new Array2d(width, height);
+    _grid = new Array2d<int>(width, height);
+    _units = new Array2d<String>(width, height);
+    _spriteGrid = new Array2d<Sprite>(width, height);
     _tileTypes = new Map<TileType, Tile>();
     _traversableTypes = new List<int>();
     _rng = new Random();
+    //arbitrary max search distance of 10...perhaps determine based on map size?
+    //Or mobility of characters?
     
     //add an instance of each kind of tile to the map
     _tileTypes[TileType.DIRT] = new Tile(TileType.DIRT);
@@ -41,6 +48,13 @@ class GameMap implements TileBasedMap
         _traversableTypes.add(tt.value);
       }
     });
+    
+    //init units array with all cells as empty strings.
+    for (int i = 0; i < _units.array.length; i++) {
+      for (int j = 0; j < _units[0].length; j++) {
+        _units[i][j] = "";
+      }
+    }
   }
   
   void addTile(TileType type, int row, int col)
@@ -62,6 +76,26 @@ class GameMap implements TileBasedMap
     return _tileTypes.keys.firstWhere((TileType toTest) {
       return toTest.value == tileVal; 
     });
+  }
+  
+  setSpriteAt(Sprite sprite, int row, int col)
+  {
+    _spriteGrid[row][col] = sprite;
+  }
+  
+  Sprite getSpriteAt(int row, int col)
+  {
+    return _spriteGrid[row][col];
+  }
+  
+  testFindPath(Mover mover)
+  {
+    Path path = finder.findPath(mover, 0, 0, 0, 2);
+    print(_grid.toString());
+    print("Printing path steps...");
+    for (int i = 0; i < path.length; i++) {
+      print("(${path._steps[i].x},${path._steps[i].y})");
+    }
   }
   
   Future<bool> generateMap(File file)
@@ -91,6 +125,10 @@ class GameMap implements TileBasedMap
             }
           }
         }
+        //Now that the map is set up, initialise the Pathfinder. This cannot be done
+        //in the constructor because the map needs to be set up so that the
+        //Pathfinder can access Tile cost values.
+        finder = new AStarPathFinder(this, 10);
     });
   }
   
@@ -157,14 +195,18 @@ class GameMap implements TileBasedMap
   int getWidthInTiles() => width;
   int getHeightInTiles() => height;
   
-  pathfinderVisted(int x, int y)
+  pathfinderVisited(int x, int y)
   {
     //probably won't be used, inherited intended is for debugging new heuristics
   }
   
   //TODO Consider reworking for cases where some characters can move over
   //"untraversable" tiles, e.g. flyers?
-  bool blocked(Mover mover, int x, int y) => _traversableTypes.contains(_grid[x][y]);
+  bool blocked(Mover mover, int x, int y) {
+    print(_traversableTypes.contains(_grid[x][y]));
+    print(_traversableTypes.toString());
+    return !_traversableTypes.contains(_grid[x][y]);
+  }
   
   double getCost(Mover mover, int startX, int startY, int targetX, int targetY)
   {
@@ -182,7 +224,7 @@ class GameMap implements TileBasedMap
       TileType currType = _tileTypes.keys.firstWhere((TileType tt) {
         return tileTypeInt == tt.value;
       });
-      return _tileTypes[currType]._moveCost;
+      return _tileTypes[currType]._moveCost.toDouble();
     }
   }
 }

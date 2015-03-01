@@ -50,15 +50,24 @@ class AStarPathFinder implements Pathfinder
     if (heuristic == null) {
       _heuristic = new ClosestHeuristic();
     }
-    _heuristic = heuristic;
     this.map = map;
     _maxSearchDistance = maxSearchDistance;
     _allowDiagMovement = allowDiagMovement;
     
-    _nodes = new Array2d(map.getWidthInTiles(), map.getHeightInTiles());
-    for (int x = 0; x < map.getWidthInTiles(); x++) {
-      for (int y = 0; y < map.getHeightInTiles(); y++) {
+    int mapWidth = map.getWidthInTiles();
+    int mapHeight = map.getHeightInTiles();
+    _nodes = new Array2d(mapWidth, mapHeight);
+    for (int x = 0; x < mapWidth; x++) {
+      for (int y = 0; y < mapHeight; y++) {
         _nodes[x][y] = new Node(x,y);
+        //Getting the cost to move to "target" (coords x,y) from (x - 1,y) will work
+        //in all cases except if x == 0. In that case the RangeError is caught and
+        //the code calculates moving from (x + 1,y) instead.
+        try {
+          _nodes[x][y]._cost = map.getCost(null, x - 1, y, x, y);
+        } on RangeError catch(e) {
+          _nodes[x][y]._cost = map.getCost(null, x + 1, y, x, y);
+        }
       }
     }
   }
@@ -66,21 +75,23 @@ class AStarPathFinder implements Pathfinder
   /**
    * @see PathFinder#findPath(Mover, int, int, int, int)
    */
-  Path findPath(Mover mover, int sx, int sy, int tx, int ty) {
+  Path findPath(Mover mover, int sx, int sy, int tx, int ty)
+  {
     //Easy first check, if the destination is blocked, we can't get there.
     if (map.blocked(mover, tx, ty)) {
+      print("Destination blocked! :(");
       return null;
     }
     
     //Initial state for A*. The closed group is empty. Only the starting
     //tile is in the open list and it's already there.
-    _nodes[sx][sy].cost = 0;
-    _nodes[sx][sy].depth = 0;
+    _nodes[sx][sy]._cost = 0.0;
+    _nodes[sx][sy]._depth = 0;
     _closed.clear();
     _open.clear();
     _open.add(_nodes[sx][sy]);
     
-    _nodes[tx][ty].parent = null;
+    _nodes[tx][ty]._parent = null;
     
     //while we haven't exceeded our max search depth
     int maxDepth = 0;
@@ -157,7 +168,8 @@ class AStarPathFinder implements Pathfinder
     }
 
     //Since we've run out of search there was no path. Just return null
-    if (_nodes[tx][ty].parent == null) {
+    if (_nodes[tx][ty]._parent == null) {
+      print("No path found! D:");
       return null;
     }
     
@@ -183,7 +195,7 @@ class AStarPathFinder implements Pathfinder
    * 
    * @return The first element in the open list
    */
-  Node getFirstInOpen() => _open.first();
+  Node getFirstInOpen() => _open.first;
   
   /**
    * Add a node to the open list
@@ -355,23 +367,20 @@ class Node implements Comparable
   }
 }
 
-/**
- * A simple sorted list
- *
- * @author kevin
- */
 class SortedList<T> extends ListBase<T>
 {
-  get length => super.length;
+  List<T> l = new List<T>();
+  
+  get length => l.length;
   set length(int len)
   {
-    super.length = len;
+    l.length = len;
   }
   
-  operator[] (int i) => super[i];
+  operator[] (int i) => l[i];
   operator[]= (int index, T t)
   {
-    super[index] = t;
+    l[index] = t;
   }
   
   /**
