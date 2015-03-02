@@ -75,7 +75,7 @@ class AStarPathFinder implements Pathfinder
   /**
    * @see PathFinder#findPath(Mover, int, int, int, int)
    */
-  Path findPath(Mover mover, int sx, int sy, int tx, int ty)
+  Path findPath(Mover mover, int sx, int sy, int tx, int ty, [double maxCost = double.INFINITY])
   {
     //Easy first check, if the destination is blocked, we can't get there.
     if (map.blocked(mover, tx, ty)) {
@@ -95,7 +95,7 @@ class AStarPathFinder implements Pathfinder
     
     //while we haven't exceeded our max search depth
     int maxDepth = 0;
-    while ((maxDepth < _maxSearchDistance) && (_open.length != 0)) {
+    while (maxDepth < _maxSearchDistance && _open.length != 0) {
       // pull out the first node in our open list, this is determined to 
       // be the most likely to be the next step based on our heuristic
 
@@ -133,11 +133,15 @@ class AStarPathFinder implements Pathfinder
             //cost to reach this node. Note that the heuristic value is only used
             //in the sorted open list
             double nextStepCost = current._cost + getMovementCost(mover, current._x, current._y, xp, yp);
+            //If nextStepCost exceeds the maxCost, the path is too long
+            if (nextStepCost > maxCost) {
+              continue;
+            }
+            
             Node neighbour = _nodes[xp][yp];
             map.pathfinderVisited(xp, yp);
             
             // if the new cost we've determined for this node is lower than 
-
             // it has been previously makes sure the node hasn'e've
             // determined that there might have been a better path to get to
 
@@ -178,6 +182,7 @@ class AStarPathFinder implements Pathfinder
     // to the start recording the nodes on the way.
     Path path = new Path();
     Node target = _nodes[tx][ty];
+    print("Path cost: ${target._cost}");
     while (target != _nodes[sx][sy]) {
       path.prependStep(target._x, target._y);
       target = target._parent;
