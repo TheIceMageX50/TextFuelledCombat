@@ -25,6 +25,7 @@ class Character implements Mover
   CharType _type;
   
   //REMOVE GETTER...or rather SETTER??
+  String get name => _name;
   Sprite get sprite => _sprite;
   set sprite(Sprite sprite)
   {
@@ -47,31 +48,80 @@ class Character implements Mover
     }
   }
   
-  attack(Character other)
+  void attack(Character other)
   {
     other._hpCurrent -= this._attackPower;
   }
   
-  moveTo(int x, int y, GameMap map, Game game)
+  void moveTo(int x, int y, GameMap map, Game game, Pathfinder finder)
   {
-    if (x < map.width && y < map.height && x >= 0 && y >= 0) {
-      //map.finder.findPath(this, sx, sy, tx, ty)
-      //unit is moving, blank its previous location in units array
-      map._units[_pos.x][_pos.y] = "";
-      //set new location
-      map._units[x][y] = _name;
-      _pos.x = x;
-      _pos.y = y;
+    //If manhattan distance from current pos to target > mobility then the character
+    //certainly can't get there
+    if (_manhattanDist(_pos.x, _pos.y, x, y) > _mobility) {
+      //error
     } else {
-      //What are you doing? You can't move off the map...
+      Path path = finder.findPath(this, _pos.x, _pos.y, x, y);
+      bool movingHorizontally = false, movingVertically = false;
+      if (path == null) {
+        //either the destination is blocked, or too costly to reach
+        //TODO Play "error sound before breaking out of the function?
+        return;
+      }
+      List<Point> pathPoints = new List<Point>();
+      pathPoints.add(path._steps[0]);
+      pathPoints.add(path._steps[1]);
+      if (pathPoints[1].x != pathPoints[0].x)  {
+        movingHorizontally = true;
+      } else {
+        movingVertically = true;
+      }
+      for (int i = 2; i < path.length; i++) {
+        if (movingHorizontally && path._steps[i].x != path._steps[i - 1].x ||
+         movingVertically && path._steps[i].y != path._steps[i - 1].y) {
+          continue;
+        } else if (movingHorizontally) {
+          //Path was horizontal up to now but next path point changes y not x,
+          //meaning the character will have to start moving vertically next.
+          pathPoints.add(path._steps[i - 1]);
+          movingHorizontally = false;
+          movingVertically = true;
+          int destX = path._steps[i - 1].x * TILE_DIM + MAP_OFFSETX;
+          game.add.tween(_sprite)
+          .to({'x' : destX}, 1000, Easing.Quadratic.InOut, true);
+        } else if (movingVertically) {
+          //Path was vertical up to now but next path point changes x not y,
+          //meaning the character will have to start moving horizontally next.
+          pathPoints.add(path._steps[i - 1]);
+          movingHorizontally = true;
+          movingVertically = false;
+          int destY = path._steps[i - 1].y * TILE_DIM + MAP_OFFSETY;
+          game.add.tween(_sprite)
+          .to({'y' : destY}, 1000, Easing.Quadratic.InOut, true);
+        }
+      }
+      
+      if (x < map.width && y < map.height && x >= 0 && y >= 0) {
+        //unit is moving, blank its previous location in units array
+        map._units[_pos.x][_pos.y] = "";
+        //set new location
+        map._units[x][y] = _name;
+        _pos.x = x;
+        _pos.y = y;
+      } else {
+        //What are you doing? You can't move off the map...
+      }
     }
   }
+  
+  int _manhattanDist(int x1, int y1, int x2, int y2) => Math.abs(x2 - x1) + Math.abs(y2 - y1);
   
   initSprite(Game game)
   {
     switch(_type) {
-      //32x32 are tile dimensions, 46 is height of sprite
-      case CharType.PLAYER: _sprite = game.add.sprite(_pos.x * 32 + 96, _pos.y * 32 + 64 - 46, 'roshan');
+      case CharType.PLAYER: _sprite = game.add
+          .sprite(_pos.x * TILE_DIM +MAP_OFFSETX,
+                  _pos.y * TILE_DIM + MAP_OFFSETY - CHAR_HEIGHT,
+                  'roshan');
       break;
     }
   }

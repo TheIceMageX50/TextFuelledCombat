@@ -2,6 +2,8 @@ import 'lib/tfc_dart.dart';
 import 'package:play_phaser/phaser.dart';
 import 'dart:html';
 
+Pathfinder finder;
+
 void main()
 {
 
@@ -46,6 +48,7 @@ class MapRenderState extends State
   String assetPath;
   Sprite playerChar;
   List<Character> playerTeam, enemyTeam;
+  Character selected;
   
   MapRenderState(GameMap map, String assetPath)
   {
@@ -103,19 +106,26 @@ class MapRenderState extends State
       }
     }
     //Map rendering is done, need to setup and render characters now.
-    //Character player = new Character("Testguy", CharType.PLAYER, new Point(0, 0));
-    //player.initSprite(game);
-    playerChar = game.add.sprite(10, 0, 'roshan');
-    game.add.tween(playerChar)
-      .to({ 'x': playerChar.position.x + 32}, 2000, Easing.Quadratic.InOut, true, 0, 0, false);
-    playerChar.inputEnabled = true;
-    playerChar.events.onInputDown.add(listener);
+    Character player = new Character("Testguy", CharType.PLAYER, new Point(0, 0));
+    map.setUnitAt(player.name, 0, 0);
+    player.initSprite(game);
+    //playerChar = game.add.sprite(10, 0, 'roshan');
+    //game.add.tween(player)
+    //  .to({ 'x': player.sprite.position.x + 32}, 2000, Easing.Quadratic.InOut, true, 0, 0, false);
+    player.sprite.inputEnabled = true;
+    player.sprite.events.onInputDown.add(listener);
+    playerTeam.add(player);
   }
   
-  listener(GameObject go, Pointer p)
+  listener(Sprite sprite, Pointer p)
   {
-    print("Clicked!");
+    //TODO Need to take into account possibility of it being player OR enemy
+    //once turn system exists.
+    selected = playerTeam.firstWhere((Character c) {
+      return c.sprite == sprite;
+    });
     //map.testFindPath(null);
+    window.alert("Clicked! Unit ${selected.name} is now selected!");
   }
   
   listenerTiles(Sprite sprite, Pointer p)
@@ -126,6 +136,7 @@ class MapRenderState extends State
       for (int j = 0; j < map.height; j++) {
         if (sprite == map.getSpriteAt(i, j)) {
           print("Clicked on ($i,$j)");
+          selected.moveTo(i, j, map, game, finder);
           break;
         }
       }
@@ -157,6 +168,8 @@ class FileWaitState extends State
     if (ie.files.isNotEmpty) {
       map.generateMap(ie.files[0])
       .then((_) {
+        //TODO Review: Is map.width a good max serach distance? 
+        finder = new AStarPathFinder(map, map.width);
         game.state.start('maprender');
       });
     }

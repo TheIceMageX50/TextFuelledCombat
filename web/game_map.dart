@@ -78,7 +78,7 @@ class GameMap implements TileBasedMap
     });
   }
   
-  setSpriteAt(Sprite sprite, int row, int col)
+  void setSpriteAt(Sprite sprite, int row, int col)
   {
     _spriteGrid[row][col] = sprite;
   }
@@ -88,10 +88,15 @@ class GameMap implements TileBasedMap
     return _spriteGrid[row][col];
   }
   
+  void setUnitAt(String unit, int x, int y)
+  {
+    _units[x][y] = unit;  
+  }
+  
   testFindPath(Mover mover)
   {
-    Path path = finder.findPath(mover, 0, 0, 0, 2);
-    print(_grid.toString());
+    Path path = finder.findPath(mover, 0, 0, 0, 8,7.0);
+    //print(_grid.toString());
     print("Printing path steps...");
     for (int i = 0; i < path.length; i++) {
       print("(${path._steps[i].x},${path._steps[i].y})");

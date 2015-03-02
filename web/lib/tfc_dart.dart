@@ -29,3 +29,9 @@ part '../tile_type_enum.dart';
 
 //exceptions
 part '../unknown_tile_exception.dart';
+
+//Global constants
+const int TILE_DIM = 32;
+const int MAP_OFFSETX = 96;
+const int MAP_OFFSETY = 64;
+const int CHAR_HEIGHT = 46;
