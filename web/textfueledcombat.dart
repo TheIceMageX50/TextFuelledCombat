@@ -17,7 +17,7 @@ class Tfc
   
   Tfc()
   {
-    map = new GameMap(16, 16);
+    map = new GameMap(8, 8);
     
     Game game = new Game(800, 600, AUTO, 'canvasDiv');
     game.stage.setBackgroundColor(0xADD8E6);
@@ -125,7 +125,7 @@ class MapRenderState extends State
       return c.sprite == sprite;
     });
     //map.testFindPath(null);
-    window.alert("Clicked! Unit ${selected.name} is now selected!");
+    window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y}");
   }
   
   listenerTiles(Sprite sprite, Pointer p)
@@ -136,7 +136,10 @@ class MapRenderState extends State
       for (int j = 0; j < map.height; j++) {
         if (sprite == map.getSpriteAt(i, j)) {
           print("Clicked on ($i,$j)");
-          selected.moveTo(i, j, map, game, finder);
+          if (selected != null) { //Avoid crash if no character selected
+            selected.moveToFix(i, j, map, game, finder);
+          }
+          shouldEnd = true;
           break;
         }
       }

@@ -126,7 +126,8 @@ class GameMap implements TileBasedMap
                 rand = _rng.nextInt(countKeys.length);
                 randKey = countKeys[rand];
               } while (!_tileFitsWell(fileProcessor._charTileMappings[randKey], i, j));
-              _grid[i][j] = fileProcessor._charTileMappings[randKey];
+              //} while (!tryFix(fileProcessor._charTileMappings[randKey], i, j));
+              _grid[j][i] = fileProcessor._charTileMappings[randKey];
             }
           }
         }
@@ -173,7 +174,55 @@ class GameMap implements TileBasedMap
         }
       }
       //Test NE adjacent
-      if (row > 0 && col < _grid[0].length - 2) {
+      if (row > 0 && col < _grid[0].length - 1) {
+        temp = this.whatTile(row - 1, col + 1);
+        if (!_tileTypes[temp]._traversable) {
+          strikeCount++;
+        }
+      }
+      //Test W adjacent
+      if (col > 0) {
+        temp = this.whatTile(row, col - 1);
+        if (!_tileTypes[temp]._traversable) {
+          strikeCount++;
+        }
+      }
+    }
+    return strikeCount < 1;
+  }
+  
+  bool tryFix(int tileTypeInt, int row, int col)
+  {
+    TileType tileType = _tileTypes.keys
+    .firstWhere((TileType t) {
+      return t.value == tileTypeInt;
+    });
+    TileType temp;
+    int strikeCount = 0; //Track how many adjacent tiles are untraversable.
+                         //Two(?) strikes, and you're out.
+    
+    Tile tile = _tileTypes[tileType];
+    if (tile._traversable == true) {
+      //In this case a new traversable tile is being put in, so no problems.
+      return true;
+    } else {
+      //begin testing what tiles are around the current tile
+      //Test NW adjacent
+      if (row > 0 && col > 0) {
+        temp = this.whatTile(row - 1, col - 1);
+        if (!_tileTypes[temp]._traversable) {
+           strikeCount++;
+        }
+      }
+      //Test N adjacent
+      if (row > 0) {
+        temp = this.whatTile(row - 1, col);
+        if (!_tileTypes[temp]._traversable) {
+          strikeCount++;
+        }
+      }
+      //Test SW adjacent
+      if (col > 0 && row < _grid.array.length - 1) {
         temp = this.whatTile(row - 1, col + 1);
         if (!_tileTypes[temp]._traversable) {
           strikeCount++;
@@ -207,11 +256,7 @@ class GameMap implements TileBasedMap
   
   //TODO Consider reworking for cases where some characters can move over
   //"untraversable" tiles, e.g. flyers?
-  bool blocked(Mover mover, int x, int y) {
-    print(_traversableTypes.contains(_grid[x][y]));
-    print(_traversableTypes.toString());
-    return !_traversableTypes.contains(_grid[x][y]);
-  }
+  bool blocked(Mover mover, int x, int y) => !_traversableTypes.contains(_grid[x][y]);
   
   double getCost(Mover mover, int startX, int startY, int targetX, int targetY)
   {
@@ -226,9 +271,7 @@ class GameMap implements TileBasedMap
     } else {
       //If you get here, it's a valid tile (i.e. directly adjacent) to check!
       int tileTypeInt = _grid[targetX][targetY];
-      TileType currType = _tileTypes.keys.firstWhere((TileType tt) {
-        return tileTypeInt == tt.value;
-      });
+      TileType currType = whatTile(targetX, targetY);
       return _tileTypes[currType]._moveCost.toDouble();
     }
   }

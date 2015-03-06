@@ -55,65 +55,122 @@ class Character implements Mover
   
   void moveTo(int x, int y, GameMap map, Game game, Pathfinder finder)
   {
-    //If manhattan distance from current pos to target > mobility then the character
-    //certainly can't get there
-    if (_manhattanDist(_pos.x, _pos.y, x, y) > _mobility) {
-      //error
+    if (x >= map.width || y >= map.height || x < 0 || y < 0) {
+      //out of bounds => error
+    } else if (_manhattanDist(_pos.x, _pos.y, x, y) > _mobility) {
+      //If manhattan distance from current pos to target > mobility then the
+      //character certainly can't get there
+      // =>error
     } else {
       Path path = finder.findPath(this, _pos.x, _pos.y, x, y);
       bool movingHorizontally = false, movingVertically = false;
       if (path == null) {
         //either the destination is blocked, or too costly to reach
-        //TODO Play "error sound before breaking out of the function?
+        //TODO Play "error sound" before breaking out of the function?
         return;
       }
-      List<Point> pathPoints = new List<Point>();
-      pathPoints.add(path._steps[0]);
-      pathPoints.add(path._steps[1]);
-      if (pathPoints[1].x != pathPoints[0].x)  {
+      //Since it is growable width is not that important, but path.length is
+      //will always be more than enough so it's a good choice. 
+      Array2d pathData = new Array2d(path.length, 2);
+      if (path._steps[1].x != path._steps[0].x)  {
         movingHorizontally = true;
+        pathData.array[0] = ([path._steps[1], 0]);
       } else {
         movingVertically = true;
+        pathData.array[1] = ([path._steps[1], 1]);
       }
       for (int i = 2; i < path.length; i++) {
+        //if next tile movement is same direction as previous (whether horizontal
+        //or vertical), just continue
         if (movingHorizontally && path._steps[i].x != path._steps[i - 1].x ||
          movingVertically && path._steps[i].y != path._steps[i - 1].y) {
           continue;
         } else if (movingHorizontally) {
           //Path was horizontal up to now but next path point changes y not x,
           //meaning the character will have to start moving vertically next.
-          pathPoints.add(path._steps[i - 1]);
+          pathData.array[i] = ([path._steps[i - 1], 0]);
           movingHorizontally = false;
           movingVertically = true;
-          int destX = path._steps[i - 1].x * TILE_DIM + MAP_OFFSETX;
-          game.add.tween(_sprite)
-          .to({'x' : destX}, 1000, Easing.Quadratic.InOut, true);
         } else if (movingVertically) {
           //Path was vertical up to now but next path point changes x not y,
           //meaning the character will have to start moving horizontally next.
-          pathPoints.add(path._steps[i - 1]);
+          pathData.array.add([path._steps[i - 1], 1]);
           movingHorizontally = true;
           movingVertically = false;
-          int destY = path._steps[i - 1].y * TILE_DIM + MAP_OFFSETY;
-          game.add.tween(_sprite)
-          .to({'y' : destY}, 1000, Easing.Quadratic.InOut, true);
         }
-      }
-      
-      if (x < map.width && y < map.height && x >= 0 && y >= 0) {
-        //unit is moving, blank its previous location in units array
+        //Before animating, check if first and second "tween steps" can be merged;
+        //that is, if both are horizontal or vertical
+        if (pathData[0][1] == pathData[1][1]) {
+          pathData.array.removeAt(1);
+        }
+        int destX, destY;
+        for (int i = 0; i < pathData.array.length; i++) {
+          if ( pathData[i][1] == 0) {
+            destX = pathData[i][0].x * TILE_DIM + MAP_OFFSETX;
+            game.add.tween(_sprite)
+            .to({'x' : destX}, 1000, Easing.Quadratic.InOut, true);
+          } else {
+            int destY = pathData[i][0].y * TILE_DIM + MAP_OFFSETY;
+            game.add.tween(_sprite)
+            .to({'y' : destY}, 1000, Easing.Quadratic.InOut, true);
+          }
+        }
+        //unit has moved, blank its previous location in units array
         map._units[_pos.x][_pos.y] = "";
         //set new location
         map._units[x][y] = _name;
         _pos.x = x;
         _pos.y = y;
-      } else {
-        //What are you doing? You can't move off the map...
       }
     }
   }
   
+  void moveToFix(int x, int y, GameMap map, Game game, Pathfinder finder)
+  {
+    if (x >= map.width || y >= map.height || x < 0 || y < 0) {
+      //out of bounds => error
+    } else if (_manhattanDist(_pos.x, _pos.y, x, y) > _mobility) {
+      //If manhattan distance from current pos to target > mobility then the
+      //character certainly can't get there
+      // =>error
+    } else {
+      String blah;
+      Path path = finder.findPath(this, _pos.x, _pos.y, x, y, _mobility.toDouble());
+      if (path == null) {
+        TileType tt = map.whatTile(x, y);
+        window.alert("Path blocked! At ($x,$y) there is a tile of type ${tt.value}");
+        for (int a = 0; a < map.width; a++) {
+          var temp = "";
+          for (int b = 0; b < map.height; b++) {
+            bool boolL = map.blocked(null, a, b);
+            temp += boolL.toString() + " ";
+          }
+          print(temp);
+        }
+        return;
+      }
+      print("Printing path steps...");
+      for (int i = 0; i < path.length; i++) {
+        print("(${path._steps[i].x},${path._steps[i].y})");
+      }
+      print("Path End");
+      Point p = _gridToWorld(path._steps[0]);    
+      Tween tween = game.add.tween(_sprite);
+      for (int i = 0; i < path.length - 1; i++) {
+        Point p1 = _gridToWorld(path._steps[i+1]);
+        tween.to({'x' : p1.x, 'y' : p1.y}, 600, Easing.Quadratic.InOut, true);
+      }      
+      //unit has moved, blank its previous location in units array
+      map._units[_pos.x][_pos.y] = "";
+      //set new location
+      map._units[x][y] = _name;
+      _pos.x = x;
+      _pos.y = y;
+    }
+  }
+  
   int _manhattanDist(int x1, int y1, int x2, int y2) => Math.abs(x2 - x1) + Math.abs(y2 - y1);
+  Point _gridToWorld(Point p) => new Point(p.x * TILE_DIM  + MAP_OFFSETX, p.y * TILE_DIM + MAP_OFFSETY - CHAR_HEIGHT);
   
   initSprite(Game game)
   {
