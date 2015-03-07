@@ -56,9 +56,10 @@ class AStarPathFinder implements Pathfinder
     
     int mapWidth = map.getWidthInTiles();
     int mapHeight = map.getHeightInTiles();
-    _nodes = new Array2d(mapWidth, mapHeight);
-    for (int x = 0; x < mapWidth; x++) {
-      for (int y = 0; y < mapHeight; y++) {
+    print("mapheight $mapHeight .. mapwidth $mapWidth");
+    _nodes = new Array2d(mapHeight, mapWidth);
+    for (int x = 0; x < mapHeight; x++) {
+      for (int y = 0; y < mapWidth; y++) {
         _nodes[x][y] = new Node(x,y);
         //Getting the cost to move to "target" (coords x,y) from (x - 1,y) will work
         //in all cases except if x == 0. In that case the RangeError is caught and
@@ -66,6 +67,7 @@ class AStarPathFinder implements Pathfinder
         try {
           _nodes[x][y]._cost = map.getCost(null, x - 1, y, x, y);
         } on RangeError catch(e) {
+          //print("x is $x .. y is $y");
           _nodes[x][y]._cost = map.getCost(null, x + 1, y, x, y);
         }
       }
@@ -78,7 +80,7 @@ class AStarPathFinder implements Pathfinder
   Path findPath(Mover mover, int sx, int sy, int tx, int ty, [double maxCost = double.INFINITY])
   {
     //Easy first check, if the destination is blocked, we can't get there.
-    if (map.blocked(mover, tx, ty)) {
+    if (map.blocked(mover, ty, tx)) {
       print("Destination blocked! :(");
       return null;
     }
@@ -108,7 +110,6 @@ class AStarPathFinder implements Pathfinder
       addToClosed(current);
       
       // search through all the neighbours of the current node evaluating
-
       // them as next steps
 
       for (int x = -1; x < 2; x++) {
@@ -157,7 +158,7 @@ class AStarPathFinder implements Pathfinder
             }
             
             //if the node hasn't already been processed and discarded then
-            //reset it's cost to our current cost and add it as a next possible
+            //reset its cost to our current cost and add it as a next possible
             //step (i.e. to the open list)
 
             if (!inOpenList(neighbour) && !(inClosedList(neighbour))) {
@@ -270,10 +271,10 @@ class AStarPathFinder implements Pathfinder
    */
   bool isValidLocation(Mover mover, int sx, int sy, int x, int y)
   {
-    bool invalid = (x < 0) || (y < 0) || (x >= map.getWidthInTiles()) || (y >= map.getHeightInTiles());
+    bool invalid = (x < 0) || (y < 0) || (y >= map.getWidthInTiles()) || (x >= map.getHeightInTiles());
     
-    if ((!invalid) && ((sx != x) || (sy != y))) {
-      invalid = map.blocked(mover, x, y);
+    if (!invalid && (sx != x || sy != y)) {
+      invalid = map.blocked(mover, y, x);
     }
     
     return !invalid;

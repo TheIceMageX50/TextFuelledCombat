@@ -17,7 +17,7 @@ class Tfc
   
   Tfc()
   {
-    map = new GameMap(8, 8);
+    map = new GameMap(3, 6);
     
     Game game = new Game(800, 600, AUTO, 'canvasDiv');
     game.stage.setBackgroundColor(0xADD8E6);
@@ -102,16 +102,13 @@ class MapRenderState extends State
         }
         temp.inputEnabled = true;
         temp.events.onInputDown.add(listenerTiles);
-        map.setSpriteAt(temp, j, i);
+        map.setSpriteAt(temp, i, j);
       }
     }
     //Map rendering is done, need to setup and render characters now.
     Character player = new Character("Testguy", CharType.PLAYER, new Point(0, 0));
     map.setUnitAt(player.name, 0, 0);
     player.initSprite(game);
-    //playerChar = game.add.sprite(10, 0, 'roshan');
-    //game.add.tween(player)
-    //  .to({ 'x': player.sprite.position.x + 32}, 2000, Easing.Quadratic.InOut, true, 0, 0, false);
     player.sprite.inputEnabled = true;
     player.sprite.events.onInputDown.add(listener);
     playerTeam.add(player);
@@ -132,8 +129,8 @@ class MapRenderState extends State
   {
     //bool to avoid some needless iterations, i.e. once the right tile is found
     bool shouldEnd = false;
-    for (int i = 0; i < map.width; i++) {
-      for (int j = 0; j < map.height; j++) {
+    for (int i = 0; i < map.height; i++) {
+      for (int j = 0; j < map.width; j++) {
         if (sprite == map.getSpriteAt(i, j)) {
           print("Clicked on ($i,$j)");
           if (selected != null) { //Avoid crash if no character selected

@@ -19,12 +19,12 @@ class GameMap implements TileBasedMap
   int get width => _grid[0].length;
   int get height => _grid.array.length;
   
-  GameMap(int width, int height)
+  GameMap(int height, int width)
   {
     //create an integer 2D array
-    _grid = new Array2d<int>(width, height);
-    _units = new Array2d<String>(width, height);
-    _spriteGrid = new Array2d<Sprite>(width, height);
+    _grid = new Array2d<int>(height, width);
+    _units = new Array2d<String>(height, width);
+    _spriteGrid = new Array2d<Sprite>(height, width);
     _tileTypes = new Map<TileType, Tile>();
     _traversableTypes = new List<int>();
     _rng = new Random();
@@ -88,9 +88,9 @@ class GameMap implements TileBasedMap
     return _spriteGrid[row][col];
   }
   
-  void setUnitAt(String unit, int x, int y)
+  void setUnitAt(String unit, int row, int col)
   {
-    _units[x][y] = unit;  
+    _units[row][col] = unit;  
   }
   
   testFindPath(Mover mover)
@@ -113,7 +113,9 @@ class GameMap implements TileBasedMap
         List<String> countKeys = fileProcessor._charCounts.keys.toList();
         int rand;
         String randKey;
+        String temp;
         for (int i = 0; i < _grid.array.length; i++) {
+          temp = '';
           for (int j = 0; j < _grid[0].length; j++) {
             if (i == 0 || j == 0 || i == height - 1 || j == width - 1) {
               //Dealing with a border tile, just roll for a traversable.
@@ -127,9 +129,14 @@ class GameMap implements TileBasedMap
                 randKey = countKeys[rand];
               } while (!_tileFitsWell(fileProcessor._charTileMappings[randKey], i, j));
               //} while (!tryFix(fileProcessor._charTileMappings[randKey], i, j));
-              _grid[j][i] = fileProcessor._charTileMappings[randKey];
+              _grid[i][j] = fileProcessor._charTileMappings[randKey];
+            }
+            temp += _grid[i][j].toString() + ' ';
+            if (blocked(null,i,j)) {
+              print("blocked: ($i,$j)");
             }
           }
+          print(temp);
         }
         //Now that the map is set up, initialise the Pathfinder. This cannot be done
         //in the constructor because the map needs to be set up so that the
@@ -256,23 +263,25 @@ class GameMap implements TileBasedMap
   
   //TODO Consider reworking for cases where some characters can move over
   //"untraversable" tiles, e.g. flyers?
-  bool blocked(Mover mover, int x, int y) => !_traversableTypes.contains(_grid[x][y]);
+  bool blocked(Mover mover, int row, int col) => !_traversableTypes.contains(_grid[row][col]);
   
-  double getCost(Mover mover, int startX, int startY, int targetX, int targetY)
+  double getCost(Mover mover, int startRow, int startCol, int targetRow, int targetCol)
   {
     //Cover our bases; this should only be used to test moving from one tile to another
     //directly (nondiagonally!) adjacent tile.
-    if (targetX - startX !=0 && targetY - startY != 0) {
+    if (targetRow - startRow !=0 && targetCol - startCol != 0) {
       throw('Error: Diagonal movement not allowed.');
     //Difference > 1 in either case means an attempt to assess moving to a tile that
     //is not directly adjacent. This is out of scope of the intended use.
-    } else if (targetX - startX > 1 || targetY - startY > 1) {
+    } else if (targetRow - startRow > 1 || targetCol - startCol > 1) {
       throw('Error: Trying to assess moving to a tile that is not directly adjacent');
     } else {
       //If you get here, it's a valid tile (i.e. directly adjacent) to check!
-      int tileTypeInt = _grid[targetX][targetY];
-      TileType currType = whatTile(targetX, targetY);
-      return _tileTypes[currType]._moveCost.toDouble();
+      int tileTypeInt = _grid[targetRow][targetCol];
+      TileType currType = whatTile(targetRow, targetCol);
+      double mc = _tileTypes[currType]._moveCost.toDouble();
+      //print("Tiletype: $tileTypeInt ... move cost: $mc");
+      return mc;
     }
   }
 }

@@ -137,11 +137,11 @@ class Character implements Mover
       String blah;
       Path path = finder.findPath(this, _pos.x, _pos.y, x, y, _mobility.toDouble());
       if (path == null) {
-        TileType tt = map.whatTile(x, y);
+        TileType tt = map.whatTile(y, x);
         window.alert("Path blocked! At ($x,$y) there is a tile of type ${tt.value}");
-        for (int a = 0; a < map.width; a++) {
+        for (int a = 0; a < map.height; a++) {
           var temp = "";
-          for (int b = 0; b < map.height; b++) {
+          for (int b = 0; b < map.width; b++) {
             bool boolL = map.blocked(null, a, b);
             temp += boolL.toString() + " ";
           }
