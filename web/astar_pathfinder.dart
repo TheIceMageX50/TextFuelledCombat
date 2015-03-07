@@ -79,8 +79,9 @@ class AStarPathFinder implements Pathfinder
    */
   Path findPath(Mover mover, int sx, int sy, int tx, int ty, [double maxCost = double.INFINITY])
   {
+    print("Entered findPath");
     //Easy first check, if the destination is blocked, we can't get there.
-    if (map.blocked(mover, ty, tx)) {
+    if (map.blocked(mover, tx, ty)) {
       print("Destination blocked! :(");
       return null;
     }
@@ -274,7 +275,7 @@ class AStarPathFinder implements Pathfinder
     bool invalid = (x < 0) || (y < 0) || (y >= map.getWidthInTiles()) || (x >= map.getHeightInTiles());
     
     if (!invalid && (sx != x || sy != y)) {
-      invalid = map.blocked(mover, y, x);
+      invalid = map.blocked(mover, x, y);
     }
     
     return !invalid;

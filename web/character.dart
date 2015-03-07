@@ -127,7 +127,7 @@ class Character implements Mover
   
   void moveToFix(int x, int y, GameMap map, Game game, Pathfinder finder)
   {
-    if (x >= map.width || y >= map.height || x < 0 || y < 0) {
+    if (y >= map.width || x >= map.height || x < 0 || y < 0) {
       //out of bounds => error
     } else if (_manhattanDist(_pos.x, _pos.y, x, y) > _mobility) {
       //If manhattan distance from current pos to target > mobility then the
@@ -137,16 +137,16 @@ class Character implements Mover
       String blah;
       Path path = finder.findPath(this, _pos.x, _pos.y, x, y, _mobility.toDouble());
       if (path == null) {
-        TileType tt = map.whatTile(y, x);
+        TileType tt = map.whatTile(x, y);
         window.alert("Path blocked! At ($x,$y) there is a tile of type ${tt.value}");
-        for (int a = 0; a < map.height; a++) {
-          var temp = "";
-          for (int b = 0; b < map.width; b++) {
-            bool boolL = map.blocked(null, a, b);
-            temp += boolL.toString() + " ";
-          }
-          print(temp);
-        }
+        //for (int a = 0; a < map.height; a++) {
+        //  var temp = "";
+        //  for (int b = 0; b < map.width; b++) {
+        //    bool boolL = map.blocked(null, a, b);
+        //    temp += boolL.toString() + " ";
+        //  }
+        //  print(temp);
+        //}
         return;
       }
       print("Printing path steps...");
@@ -170,7 +170,7 @@ class Character implements Mover
   }
   
   int _manhattanDist(int x1, int y1, int x2, int y2) => Math.abs(x2 - x1) + Math.abs(y2 - y1);
-  Point _gridToWorld(Point p) => new Point(p.x * TILE_DIM  + MAP_OFFSETX, p.y * TILE_DIM + MAP_OFFSETY - CHAR_HEIGHT);
+  Point _gridToWorld(Point p) => new Point(p.y * TILE_DIM  + MAP_OFFSETX, p.x * TILE_DIM + MAP_OFFSETY - CHAR_HEIGHT);
   
   initSprite(Game game)
   {
