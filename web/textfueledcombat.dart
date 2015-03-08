@@ -17,7 +17,7 @@ class Tfc
   
   Tfc()
   {
-    map = new GameMap(3, 6);
+    map = new GameMap(10, 12);
     
     Game game = new Game(800, 600, AUTO, 'canvasDiv');
     game.stage.setBackgroundColor(0xADD8E6);
@@ -62,6 +62,7 @@ class MapRenderState extends State
   {  
     //character sprites
     game.load.image('roshan', '$assetPath/roshan.png');
+    game.load.image('devil', '$assetPath/devil.png');
     //tile sprites
     game.load.image('dirt', '$assetPath/dirt.png');
     game.load.image('dryland', '$assetPath/wood_ph.png');
@@ -107,25 +108,41 @@ class MapRenderState extends State
     }
     //Map rendering is done, need to setup and render characters now.
     Character player = new Character("Testguy", CharType.PLAYER, new Point(0, 0));
+    Character enemy = new Character('Devil', CharType.ENEMY, new Point(5, 1));
     map.setUnitAt(player.name, 0, 0);
+    map.setUnitAt(enemy.name, 5, 1);
     player.initSprite(game);
+    enemy.initSprite(game);
     player.sprite.inputEnabled = true;
     player.sprite.events.onInputDown.add(listener);
+    enemy.sprite.inputEnabled = true;
+    enemy.sprite.events.onInputDown.add(onEnemyClicked);
     playerTeam.add(player);
+    enemyTeam.add(enemy);
   }
   
-  listener(Sprite sprite, Pointer p)
+  void listener(Sprite sprite, Pointer p)
   {
     //TODO Need to take into account possibility of it being player OR enemy
     //once turn system exists.
     selected = playerTeam.firstWhere((Character c) {
       return c.sprite == sprite;
-    });
-    //map.testFindPath(null);
+    }, orElse: () { /*Do nothing */ });
     window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y}");
   }
   
-  listenerTiles(Sprite sprite, Pointer p)
+  void onEnemyClicked(Sprite sprite, Pointer p)
+  {
+    if (selected != null) {
+      Character target = enemyTeam.firstWhere((Character c) {
+        return sprite == c.sprite;
+      });
+      
+      selected.attack(target);
+    }
+  }
+  
+  void listenerTiles(Sprite sprite, Pointer p)
   {
     //bool to avoid some needless iterations, i.e. once the right tile is found
     bool shouldEnd = false;

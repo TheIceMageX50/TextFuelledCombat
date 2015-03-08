@@ -35,13 +35,21 @@ class Character implements Mover
   Character(String name, CharType type, Point pos)
   {
     _name = name;
+    //_pos = new Point(pos.y, pos.x);
     _pos = pos;
     _type = type;
     
     switch (type) {
       case CharType.PLAYER: 
         _hpMax = 100;
+        _hpCurrent = 100;
         _attackPower = 10;
+        _mobility = 7;
+      break;
+      case CharType.ENEMY:
+        _hpMax = 100;
+        _hpCurrent = 100;
+        _attackPower = 8;
         _mobility = 7;
       break;
       default: throw "Error: Invalid type argument supplied.";
@@ -50,7 +58,19 @@ class Character implements Mover
   
   void attack(Character other)
   {
-    other._hpCurrent -= this._attackPower;
+    int diffX, diffY;
+    diffX = Math.abs(_pos.x - other._pos.x);
+    diffY = Math.abs(_pos.y - other._pos.y);
+    //window.alert('Trying to attack! points: ${_pos.x},${_pos.y} ${other._pos.x},${other._pos.y} diffs:$diffX $diffY');
+    //Attacks are melee-range; using XOR logic requires character to be
+    //nondiagonally adjacent to their target to attack.
+    if ((diffX == 1 || diffY == 1) && !(diffX == 1 && diffY == 1)) {
+      other._hpCurrent -= this._attackPower;
+      window.alert('${other.name} has ${other._hpCurrent} HP left!');
+      if (other._hpCurrent <= 0) {
+        other._sprite.kill();
+      }
+    }
   }
   
   void moveTo(int x, int y, GameMap map, Game game, Pathfinder finder)
@@ -176,10 +196,14 @@ class Character implements Mover
   {
     switch(_type) {
       case CharType.PLAYER: _sprite = game.add
-          .sprite(_pos.x * TILE_DIM +MAP_OFFSETX,
-                  _pos.y * TILE_DIM + MAP_OFFSETY - CHAR_HEIGHT,
+          .sprite(_pos.y * TILE_DIM +MAP_OFFSETX,
+                  _pos.x * TILE_DIM + MAP_OFFSETY - CHAR_HEIGHT,
                   'roshan');
       break;
+      case CharType.ENEMY: _sprite = game.add
+          .sprite(_pos.y * TILE_DIM +MAP_OFFSETX,
+                  _pos.x * TILE_DIM + MAP_OFFSETY - CHAR_HEIGHT,
+                  'devil');
     }
   }
  
