@@ -13,7 +13,7 @@ part of TextFueledCombat;
 class Path
 {
   /** The list of steps building up this path */
-  List<Point> _steps;
+  List<Node> _steps;
   
   int get length => _steps.length;
   
@@ -22,7 +22,7 @@ class Path
    */
   Path()
   {
-    _steps = new List<Point>(); 
+    _steps = new List<Node>(); 
   }
   
   /**
@@ -32,7 +32,7 @@ class Path
    * be >= 0 and < getLength();
    * @return The step information, the position on the map.
    */
-  Point getStep(int index) => _steps[0];
+  Node getStep(int index) => _steps[0];
   
   //getX(index), getY(index) removed because whatever is using Path.getStep can simply
   //have code like path.getStep(0).x; path.getStep(0).y;
@@ -43,8 +43,9 @@ class Path
    * @param x The x coordinate of the new step
    * @param y The y coordinate of the new step
    */
-  appendStep(int x, int y) {
-    _steps.add(new Point(x,y));
+  void appendStep(Node node) 
+  {
+    _steps.add(node);
   }
 
   /**
@@ -53,8 +54,9 @@ class Path
    * @param x The x coordinate of the new step
    * @param y The y coordinate of the new step
    */
-  prependStep(int x, int y) {
-    _steps.insert(0, new Point(x, y));
+  void prependStep(Node node)
+  {
+    _steps.insert(0, node);
   }
   
   /**
@@ -64,7 +66,16 @@ class Path
    * @param y The y coordinate of the step to check for
    * @return True if the path contains the given step
    */
-  bool contains(int x, int y) => _steps.contains(new Point(x,y));
+  bool contains(int x, int y) => _steps.contains(new Node(x,y));
+  
+  void removeLast()
+  {
+    _steps.removeLast();
+  }
+  
+  void removeFrom(int index) {
+    _steps = _steps.sublist(0, index);
+  }
 }
   
 /**

@@ -49,6 +49,27 @@ class MapRenderState extends State
   Sprite playerChar;
   List<Character> playerTeam, enemyTeam;
   Character selected;
+  int turnVal = 0; //0 is player's turn, 1 is enemy's turn.
+  
+  set turn(int val)
+  {
+    if (val > 1) {
+      //TODO error, throw?
+    } else if (val != turnVal) {
+      turnVal = val; 
+      if (val == 0) {
+        playerTeam.forEach((Character player) {
+          player.tired = false;
+          player.sprite.inputEnabled = true;
+        });
+      } else {
+        enemyTeam.forEach((Character enemy) {
+          enemy.tired = false;
+        });
+        playEnemyTurn();
+      }
+    }
+  }
   
   MapRenderState(GameMap map, String assetPath)
   {
@@ -81,6 +102,7 @@ class MapRenderState extends State
     ie.style.display = 'none';
     final int mapOffsetX = 96, mapOffsetY = 32;
     Sprite temp;
+    
     
     for (int i = 0; i < map.height; i++) {
       for (int j = 0; j < map.width; j++) {
@@ -121,6 +143,11 @@ class MapRenderState extends State
     enemyTeam.add(enemy);
   }
   
+  update()
+  {
+    
+  }
+  
   void listener(Sprite sprite, Pointer p)
   {
     //TODO Need to take into account possibility of it being player OR enemy
@@ -138,29 +165,83 @@ class MapRenderState extends State
         return sprite == c.sprite;
       });
       
-      selected.attack(target);
+      selected..attack(target)
+        ..tired = true
+        ..sprite.inputEnabled = false;
+      selected = null;
+      bool allTired = playerTeam.every((Character player) {
+        return player.tired;
+      });
+      if (allTired) turn = 1;
     }
   }
   
   void listenerTiles(Sprite sprite, Pointer p)
   {
-    //bool to avoid some needless iterations, i.e. once the right tile is found
-    bool shouldEnd = false;
-    for (int i = 0; i < map.height; i++) {
-      for (int j = 0; j < map.width; j++) {
-        if (sprite == map.getSpriteAt(i, j)) {
-          print("Clicked on ($i,$j)");
-          if (selected != null) { //Avoid crash if no character selected
-            selected.moveToFix(i, j, map, game, finder);
+    if (selected != null) { //Avoid crash, and needless computations, if no character selected
+      //bool to avoid some needless iterations, i.e. once the right tile is found
+      bool shouldEnd = false;
+      for (int i = 0; i < map.height; i++) {
+        for (int j = 0; j < map.width; j++) {
+          if (sprite == map.getSpriteAt(i, j)) {
+            print("Clicked on ($i,$j)");
+            selected.moveToFix(i, j, map, game, finder: finder);
+            shouldEnd = true;
+            break;
           }
-          shouldEnd = true;
+        }
+        if (shouldEnd) {
           break;
         }
       }
-      if (shouldEnd) {
-        break;
-      }
     }
+  }
+  
+  void playEnemyTurn()
+  {
+    enemyTeam.forEach((Character enemy) {
+      //TODO First and foremost need to check if a player char is already adjacent.
+      //First, figure out what player char is closest.
+      //Simple approach of assuming first is closest then testing the rest
+      Character targetPlayer = playerTeam[0];
+      int manhattanDistance = manhattanDist(enemy.pos.x,
+                                            enemy.pos.y,
+                                            targetPlayer.pos.x,
+                                            targetPlayer.pos.y);
+      int manhattanDistanceCurr;
+      for (int i = 1; i < playerTeam.length; i++) {
+        manhattanDistanceCurr = manhattanDist(enemy.pos.x, enemy.pos.y, playerTeam[i].pos.x, playerTeam[i].pos.y);
+        if (manhattanDistanceCurr < manhattanDistance) {
+          manhattanDistance = manhattanDistanceCurr;
+          targetPlayer = playerTeam[i];
+        }
+      }
+      //At this point the closest target has been found, although they may be too far away
+      //to hit this turn.
+      Path path = finder.findPath(enemy, enemy.pos.x, enemy.pos.y, targetPlayer.pos.x, targetPlayer.pos.y);
+      path.removeLast();
+      if (path.length - 1 <= enemy.mobility) {
+        Node n = path.getStep(path.length - 1);
+        enemy.moveToFix(n.x, n.y, map, game, precomputed: path);
+      } else {
+        int iter;
+        for (iter = 0; iter < path.length; iter++) {
+          if (path.getStep(iter).cost.toInt() > enemy.mobility) break;
+        }
+        path.removeFrom(iter);
+        Node n = path.getStep(path.length - 1);
+        enemy.moveToFix(n.x, n.y, map, game, precomputed: path);
+        try {
+          enemy.attack(targetPlayer);
+        } catch (e) {
+          //Enemy is too far away from player to attack, that's ok.
+        } finally {
+          enemy.tired = true;
+        }
+      }
+    });
+    //All enemies will have moved and/or attacked now, end their turn!
+    turn = 0;
   }
 }
 
@@ -185,7 +266,7 @@ class FileWaitState extends State
     if (ie.files.isNotEmpty) {
       map.generateMap(ie.files[0])
       .then((_) {
-        //TODO Review: Is map.width a good max serach distance? 
+        //TODO Review: Is map.width a good max search distance? 
         finder = new AStarPathFinder(map, map.width);
         game.state.start('maprender');
       });

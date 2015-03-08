@@ -21,15 +21,17 @@ part '../pathfinder.dart';
 part '../tile_based_map.dart';
 
 //Original code
+//---------------------------------------
 part '../character.dart';
 part '../file_processor.dart';
 part '../game_map.dart';
 part '../tile.dart';
 part '../tile_type_enum.dart';
+part 'utils.dart';
 
 //exceptions
 part '../unknown_tile_exception.dart';
-
+//---------------------------------------
 //Global constants
 const int TILE_DIM = 32;
 const int MAP_OFFSETX = 96;

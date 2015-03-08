@@ -186,10 +186,10 @@ class AStarPathFinder implements Pathfinder
     Node target = _nodes[tx][ty];
     print("Path cost: ${target._cost}");
     while (target != _nodes[sx][sy]) {
-      path.prependStep(target._x, target._y);
+      path.prependStep(target);
       target = target._parent;
     }
-    path.prependStep(sx,sy);
+    path.prependStep(_nodes[sx][sy]);
     
     // thats it, we have our path 
 
@@ -330,6 +330,9 @@ class Node implements Comparable
   /** The search depth of this node */
   int _depth;
   
+  int get x => _x;
+  int get y => _y;
+  double get cost => _cost;
   /**
    * Create a new node
    * 
