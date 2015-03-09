@@ -198,54 +198,6 @@ class GameMap implements TileBasedMap
     return strikeCount < 1;
   }
   
-  bool tryFix(int tileTypeInt, int row, int col)
-  {
-    TileType tileType = _tileTypes.keys
-    .firstWhere((TileType t) {
-      return t.value == tileTypeInt;
-    });
-    TileType temp;
-    int strikeCount = 0; //Track how many adjacent tiles are untraversable.
-                         //Two(?) strikes, and you're out.
-    
-    Tile tile = _tileTypes[tileType];
-    if (tile._traversable == true) {
-      //In this case a new traversable tile is being put in, so no problems.
-      return true;
-    } else {
-      //begin testing what tiles are around the current tile
-      //Test NW adjacent
-      if (row > 0 && col > 0) {
-        temp = this.whatTile(row - 1, col - 1);
-        if (!_tileTypes[temp]._traversable) {
-           strikeCount++;
-        }
-      }
-      //Test N adjacent
-      if (row > 0) {
-        temp = this.whatTile(row - 1, col);
-        if (!_tileTypes[temp]._traversable) {
-          strikeCount++;
-        }
-      }
-      //Test SW adjacent
-      if (col > 0 && row < _grid.array.length - 1) {
-        temp = this.whatTile(row - 1, col + 1);
-        if (!_tileTypes[temp]._traversable) {
-          strikeCount++;
-        }
-      }
-      //Test W adjacent
-      if (col > 0) {
-        temp = this.whatTile(row, col - 1);
-        if (!_tileTypes[temp]._traversable) {
-          strikeCount++;
-        }
-      }
-    }
-    return strikeCount < 1;
-  }
-  
   int _rollTraversableType()
   {
     int rand = _rng.nextInt(_traversableTypes.length);
@@ -262,7 +214,8 @@ class GameMap implements TileBasedMap
   }
   
   //TODO Consider reworking for cases where some characters can move over
-  //"untraversable" tiles, e.g. flyers?
+  //"untraversable" tiles, e.g. flyers? Probably not going to be a feature in FYP
+  //version..
   bool blocked(Mover mover, int row, int col) => !_traversableTypes.contains(_grid[row][col]);
   
   double getCost(Mover mover, int startRow, int startCol, int targetRow, int targetCol)
