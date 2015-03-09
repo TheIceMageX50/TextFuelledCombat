@@ -4,11 +4,13 @@ class FileProcessor
 {
   Map<String, int> _charCounts;
   Map<String, int> _charTileMappings;
+  Map<String, int> _exhaustedChars;
   
   FileProcessor()
   {
     _charCounts = new Map<String, int>();
     _charTileMappings = new Map<String, int>();
+    _exhaustedChars = new Map<String, int>();
     _setupCharCountMap();
     _setupCharMapping();
   }
@@ -37,7 +39,16 @@ class FileProcessor
     return fileIsRead.future;
   }
   
-  _setupCharCountMap()
+  void _takeChar(String chosenChar)
+  {
+    _charCounts[chosenChar]--;
+    if (_charCounts[chosenChar] == 0) {
+      _exhaustedChars[chosenChar] = _charTileMappings.remove(chosenChar);
+      _charCounts.remove(chosenChar);  
+    }
+  }
+  
+  void _setupCharCountMap()
   {
     int startCode = "!".codeUnitAt(0);
     int endCode = "z".codeUnitAt(0);
@@ -52,7 +63,7 @@ class FileProcessor
    * Initial basic character-TileType mapping method; First char is mapped to first tile type (enum value 0), second to second,
    * etc. and when the last TileType value is reached, the code loops back to map the next char to the first TileType value.
    */
-  _setupCharMapping()
+  void _setupCharMapping()
   {
     int startCode = "!".codeUnitAt(0);
     int endCode = "z".codeUnitAt(0);

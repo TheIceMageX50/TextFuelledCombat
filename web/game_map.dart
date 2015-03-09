@@ -128,8 +128,8 @@ class GameMap implements TileBasedMap
                 rand = _rng.nextInt(countKeys.length);
                 randKey = countKeys[rand];
               } while (!_tileFitsWell(fileProcessor._charTileMappings[randKey], i, j));
-              //} while (!tryFix(fileProcessor._charTileMappings[randKey], i, j));
               _grid[i][j] = fileProcessor._charTileMappings[randKey];
+              fileProcessor._takeChar(randKey);
             }
             temp += _grid[i][j].toString() + ' ';
             if (blocked(null,i,j)) {
@@ -200,8 +200,17 @@ class GameMap implements TileBasedMap
   
   int _rollTraversableType()
   {
-    int rand = _rng.nextInt(_traversableTypes.length);
-    return _traversableTypes[rand];
+    int rand;
+    int tileInt;
+    List<String> traversableChars = fileProcessor._charTileMappings.keys.where((String mapKey) {
+      tileInt = fileProcessor._charTileMappings[mapKey];
+      return _traversableTypes.contains(tileInt);
+    });
+    rand = _rng.nextInt(traversableChars.length);
+    String chosen = traversableChars[rand];
+    int ret = fileProcessor._charTileMappings[chosen];
+    fileProcessor._takeChar(chosen);
+    return ret;
   }
   
   //Method implementations mandated by TileBasedMap interface
