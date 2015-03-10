@@ -375,6 +375,8 @@ class Node implements Comparable
       return 0;
     }
   }
+  
+  String toString() => "($x,$y)";
 }
 
 class SortedList<T> extends ListBase<T>

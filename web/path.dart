@@ -76,6 +76,8 @@ class Path
   void removeFrom(int index) {
     _steps = _steps.sublist(0, index);
   }
+  
+  String toString() => _steps.toString();
 }
   
 /**
