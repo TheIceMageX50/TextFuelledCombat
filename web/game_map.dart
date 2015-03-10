@@ -121,6 +121,9 @@ class GameMap implements TileBasedMap
               //Dealing with a border tile, just roll for a traversable.
               _grid[i][j] = _rollTraversableType();
             } else {
+              //Need to ensure countKeys does not contain any chars that were
+              //removed from the charCounts map.
+              countKeys = fileProcessor._charCounts.keys.toList();
               //For each "grid square" randomly pick a char from the list of keys and store the
               //int value (representing a TileType) that that char maps to in the grid square.
               //Continue to reselect a char until a TileType that fits well is found.
@@ -133,10 +136,10 @@ class GameMap implements TileBasedMap
             }
             temp += _grid[i][j].toString() + ' ';
             if (blocked(null,i,j)) {
-              print("blocked: ($i,$j)");
+             // print("blocked: ($i,$j)");
             }
           }
-          print(temp);
+          //print(temp);
         }
         //Now that the map is set up, initialise the Pathfinder. This cannot be done
         //in the constructor because the map needs to be set up so that the
@@ -205,7 +208,7 @@ class GameMap implements TileBasedMap
     List<String> traversableChars = fileProcessor._charTileMappings.keys.where((String mapKey) {
       tileInt = fileProcessor._charTileMappings[mapKey];
       return _traversableTypes.contains(tileInt);
-    });
+    }).toList();
     rand = _rng.nextInt(traversableChars.length);
     String chosen = traversableChars[rand];
     int ret = fileProcessor._charTileMappings[chosen];
