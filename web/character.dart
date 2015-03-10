@@ -28,6 +28,8 @@ class Character implements Mover
   String get name => _name;
   Sprite get sprite => _sprite;
   bool get tired => _tired;
+  int get hpMax => _hpMax;
+  int get hpCurrent => _hpCurrent;
   int get mobility => _mobility;
   Point get pos => _pos;
   

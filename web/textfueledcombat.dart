@@ -49,6 +49,8 @@ class MapRenderState extends State
   Sprite playerChar;
   List<Character> playerTeam, enemyTeam;
   Character selected;
+  Text playerText, enemyText;
+  final String placeholderText = '----\n--/--';
   int turnVal = 0; //0 is player's turn, 1 is enemy's turn.
   
   set turn(int val)
@@ -58,6 +60,8 @@ class MapRenderState extends State
     } else if (val != turnVal) {
       turnVal = val; 
       if (val == 0) {
+        //Reset playerText
+        playerText.setText(placeholderText);
         playerTeam.forEach((Character player) {
           player.tired = false;
           player.sprite.inputEnabled = true;
@@ -136,11 +140,16 @@ class MapRenderState extends State
     player.initSprite(game);
     enemy.initSprite(game);
     player.sprite.inputEnabled = true;
-    player.sprite.events.onInputDown.add(listener);
+    player.sprite.events.onInputDown.add(onPlayerClicked);
     enemy.sprite.inputEnabled = true;
     enemy.sprite.events.onInputDown.add(onEnemyClicked);
     playerTeam.add(player);
     enemyTeam.add(enemy);
+    
+    //Setup displays for enemy and player HP.
+    TextStyle style = new TextStyle(fill:'#fffff' , font:'10px Arial' , align:'left');
+    playerText = game.add.text(10, 20, placeholderText, style);
+    enemyText = game.add.text(10, 60, placeholderText, style);
   }
   
   update()
@@ -148,27 +157,38 @@ class MapRenderState extends State
     
   }
   
-  void listener(Sprite sprite, Pointer p)
+  void onPlayerClicked(Sprite sprite, Pointer p)
   {
-    //TODO Need to take into account possibility of it being player OR enemy
-    //once turn system exists.
     selected = playerTeam.firstWhere((Character c) {
       return c.sprite == sprite;
     }, orElse: () { /*Do nothing */ });
-    window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y}");
+    playerText.setText("${selected.name}\n${selected.hpCurrent}/${selected.hpMax}");
+    window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y})");
   }
   
   void onEnemyClicked(Sprite sprite, Pointer p)
   {
+    Character target = enemyTeam.firstWhere((Character c) {
+      return sprite == c.sprite;
+    });
+    enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
+    
     if (selected != null) {
-      Character target = enemyTeam.firstWhere((Character c) {
-        return sprite == c.sprite;
-      });
+      try {
+        selected..attack(target)
+          ..tired = true
+          ..sprite.inputEnabled = false;
+        selected = null;
+        enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
       
-      selected..attack(target)
-        ..tired = true
-        ..sprite.inputEnabled = false;
-      selected = null;
+        if (target.hpCurrent <= 0) {
+          enemyTeam.remove(target);
+          enemyText.setText(placeholderText);
+        }
+      } catch (e) {
+        //Enemy is out of range so attack could not be performed.
+        selected.tired = true;
+      }
       bool allTired = playerTeam.every((Character player) {
         return player.tired;
       });
@@ -216,28 +236,38 @@ class MapRenderState extends State
           targetPlayer = playerTeam[i];
         }
       }
+      enemyText.setText("${enemy.name}\n${enemy.hpCurrent}/${enemy.hpMax}");
+      playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
       //At this point the closest target has been found, although they may be too far away
       //to hit this turn.
-      Path path = finder.findPath(enemy, enemy.pos.x, enemy.pos.y, targetPlayer.pos.x, targetPlayer.pos.y);
-      path.removeLast();
-      if (path.length - 1 <= enemy.mobility) {
-        Node n = path.getStep(path.length - 1);
-        enemy.moveToFix(n.x, n.y, map, game, precomputed: path);
-      } else {
-        int iter;
-        for (iter = 0; iter < path.length; iter++) {
-          if (path.getStep(iter).cost.toInt() > enemy.mobility) break;
+      if (manhattanDistance != 1) {
+        //Not adjacent to the target player, must find a path to get closer.
+        Path path = finder.findPath(enemy, enemy.pos.x, enemy.pos.y, targetPlayer.pos.x, targetPlayer.pos.y);
+        path.removeLast();
+        if (path.length - 1 <= enemy.mobility) {
+          Node n = path.getStep(path.length - 1);
+          enemy.moveToFix(n.x, n.y, map, game, precomputed: path);
+        } else {
+          int iter;
+          for (iter = 0; iter < path.length; iter++) {
+            if (path.getStep(iter).cost.toInt() > enemy.mobility) break;
+          }
+          path.removeFrom(iter);
+          Node n = path.getStep(path.length - 1);
+          enemy.moveToFix(n.x, n.y, map, game, precomputed: path);
         }
-        path.removeFrom(iter);
-        Node n = path.getStep(path.length - 1);
-        enemy.moveToFix(n.x, n.y, map, game, precomputed: path);
-        try {
-          enemy.attack(targetPlayer);
-        } catch (e) {
-          //Enemy is too far away from player to attack, that's ok.
-        } finally {
-          enemy.tired = true;
-        }
+      }
+      
+      try {
+        print('Enemy is attacking!');
+        enemy.attack(targetPlayer);
+        //update after dealing damage
+        playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
+      } catch (e) {
+        print("Enemy attack failed! range issue");
+        //Enemy is too far away from player to attack, that's ok.
+      } finally {
+        enemy.tired = true;
       }
     });
     //All enemies will have moved and/or attacked now, end their turn!
