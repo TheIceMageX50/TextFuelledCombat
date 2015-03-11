@@ -24,6 +24,12 @@ class Character implements Mover
   Sprite _sprite;
   CharType _type;
   bool _tired;
+  Map<AttackType, int> _attackCharges;
+  List<int> _weaknesses;
+  
+  static List<AttackType> ALL_TYPES = [AttackType.AIR, AttackType.WATER,
+                                       AttackType.FIRE, AttackType.EARTH,
+                                       AttackType.SWORD, AttackType.MACE];
   
   String get name => _name;
   Sprite get sprite => _sprite;
@@ -45,7 +51,17 @@ class Character implements Mover
     _pos = pos;
     _type = type;
     _tired = false;
+    _attackCharges = new Map<AttackType, int>();
+    _weaknesses = new List<int>();
     
+    _attackCharges[AttackType.FIRE] = 0;
+    _attackCharges[AttackType.WATER] = 0;
+    _attackCharges[AttackType.EARTH] = 0;
+    _attackCharges[AttackType.AIR] = 0;
+    _attackCharges[AttackType.SWORD] = 0;
+    _attackCharges[AttackType.MACE] = 0;
+    
+    //TODO Set up weaknesses list, most likely depending on CharType
     switch (type) {
       case CharType.PLAYER: 
         _hpMax = 100;
@@ -63,24 +79,43 @@ class Character implements Mover
     }
   }
   
-  void attack(Character other)
+  void attack(AttackType atkType, Character other)
   {
-    int diffX, diffY;
+    int diffX, diffY, damage;
     diffX = Math.abs(_pos.x - other._pos.x);
     diffY = Math.abs(_pos.y - other._pos.y);
     //window.alert('Trying to attack! points: ${_pos.x},${_pos.y} ${other._pos.x},${other._pos.y} diffs:$diffX $diffY');
     //Attacks are melee-range; using XOR logic requires character to be
     //nondiagonally adjacent to their target to attack.
     if ((diffX == 1 || diffY == 1) && !(diffX == 1 && diffY == 1) && !(diffX > 1 || diffY > 1)) {
-      other._hpCurrent -= this._attackPower;
+      damage = _attackPower;
+      if (other._weaknesses.contains(atkType.value)) {
+        damage *= WEAKNESS_DMG_MULTIPLIER;
+      }
+      other._hpCurrent -= damage;
       window.alert('${other.name} has ${other._hpCurrent} HP left!');
       if (other._hpCurrent <= 0) {
         other._sprite.kill();
       }
+      _attackCharges[atkType]--;
     } else {
       throw new Exception('Target out of range!');
     }
   }
+  
+  void addCharge(int type)
+  {
+    AttackType attType = ALL_TYPES.firstWhere((AttackType att) {
+      return att.value == type;
+    });
+    if (_attackCharges.containsKey(attType)) {
+      _attackCharges[attType]++;
+    } else {
+      throw new Exception('Invalid AttackType');
+    }
+  }
+  
+  bool isWeakTo(int type) => _weaknesses.any((int atkType) => atkType == type);
   
   void moveToFix(int x, int y, GameMap map, Game game, {Pathfinder finder, Path precomputed})
   {
@@ -157,4 +192,18 @@ class CharType<int> extends Enum<int>
   
   static const PLAYER = const CharType(0);
   static const ENEMY = const CharType(1);
+}
+
+class AttackType<int> extends Enum<int>
+{
+  const AttackType(int val) : super(val);
+  
+  static const TYPE_COUNT = 6;
+  
+  static const FIRE = const AttackType(0);
+  static const WATER = const AttackType(1);
+  static const EARTH = const AttackType(2);
+  static const AIR = const AttackType(3);
+  static const SWORD = const AttackType(4);
+  static const MACE = const AttackType(5);
 }

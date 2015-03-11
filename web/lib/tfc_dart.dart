@@ -2,10 +2,12 @@ library TextFueledCombat;
 
 import 'package:play_phaser/phaser.dart';
 
-import 'dart:html';
-import 'dart:math';
 import 'dart:async';
 import 'dart:collection';
+import 'dart:html';
+import 'dart:math';
+//Mirrors import currently not used. *maybe* in the future.
+import 'dart:mirrors';
 
 //Third party code
 part '../array_2d.dart';
@@ -37,3 +39,4 @@ const int TILE_DIM = 32;
 const int MAP_OFFSETX = 96;
 const int MAP_OFFSETY = 64;
 const int CHAR_HEIGHT = 46;
+const double WEAKNESS_DMG_MULTIPLIER = 1.1;

@@ -18,7 +18,6 @@ class Tfc
   Tfc()
   {
     map = new GameMap(10, 12);
-    
     Game game = new Game(800, 600, AUTO, 'canvasDiv');
     game.stage.setBackgroundColor(0xADD8E6);
     State state, state2; 
@@ -85,6 +84,7 @@ class MapRenderState extends State
   
   preload()
   {  
+    game.load.image('button', '$assetPath/button_blue.png');
     //character sprites
     game.load.image('roshan', '$assetPath/roshan.png');
     game.load.image('devil', '$assetPath/devil.png');
@@ -143,13 +143,27 @@ class MapRenderState extends State
     player.sprite.events.onInputDown.add(onPlayerClicked);
     enemy.sprite.inputEnabled = true;
     enemy.sprite.events.onInputDown.add(onEnemyClicked);
+    //Adding player and enemy characters to the teams
     playerTeam.add(player);
     enemyTeam.add(enemy);
+    //For all characters, assign some attack charges.
+    [playerTeam, enemyTeam].forEach((List<Character> team) {
+      team.forEach((Character char) {
+        int tempVal;
+        for (int i = 0; i < 10; i++) {
+          //TODO store value (10 or w/e i decide) somewhere? it is
+          //the total amount of attack charges each char is given.
+          tempVal = map.fileProcessor.takeRandAtkType(char);
+          char.addCharge(tempVal);
+        }
+      });
+    });
     
     //Setup displays for enemy and player HP.
     TextStyle style = new TextStyle(fill:'#fffff' , font:'10px Arial' , align:'left');
     playerText = game.add.text(10, 20, placeholderText, style);
     enemyText = game.add.text(10, 60, placeholderText, style);
+    //Text waitButton = game.add.text(game.world.centerX, 100, 'Wait', style);
   }
   
   update()

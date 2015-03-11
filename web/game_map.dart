@@ -110,7 +110,7 @@ class GameMap implements TileBasedMap
         //TODO Consider somehow logging what characters were (not?) used 
         //to make the map so that other parts of game do not use same chars?
         //But how to impose min. file size?
-        List<String> countKeys = fileProcessor._charCounts.keys.toList();
+        List<String> countKeys = fileProcessor._charCountsTile.keys.toList();
         int rand;
         String randKey;
         String temp;
@@ -123,7 +123,7 @@ class GameMap implements TileBasedMap
             } else {
               //Need to ensure countKeys does not contain any chars that were
               //removed from the charCounts map.
-              countKeys = fileProcessor._charCounts.keys.toList();
+              countKeys = fileProcessor._charCountsTile.keys.toList();
               //For each "grid square" randomly pick a char from the list of keys and store the
               //int value (representing a TileType) that that char maps to in the grid square.
               //Continue to reselect a char until a TileType that fits well is found.
@@ -145,6 +145,10 @@ class GameMap implements TileBasedMap
         //in the constructor because the map needs to be set up so that the
         //Pathfinder can access Tile cost values.
         finder = new AStarPathFinder(this, 10);
+        //Initialise _charCountsAttack to be a copy of _charCountsTile's state
+        //after the GameMap is fully set up. This is later used for assigning
+        //characters' attack capabilities.
+        fileProcessor._charCountsAttack.addAll(fileProcessor._charCountsTile);
     });
   }
   
