@@ -243,7 +243,7 @@ class MapRenderState extends State
       if (manhattanDistance != 1) {
         //Not adjacent to the target player, must find a path to get closer.
         Path path = finder.findPath(enemy, enemy.pos.x, enemy.pos.y, targetPlayer.pos.x, targetPlayer.pos.y);
-        path.removeLast();
+        if (path != null) path.removeLast();
         if (path.length - 1 <= enemy.mobility) {
           Node n = path.getStep(path.length - 1);
           enemy.moveToFix(n.x, n.y, map, game, precomputed: path);

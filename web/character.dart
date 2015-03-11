@@ -71,7 +71,7 @@ class Character implements Mover
     //window.alert('Trying to attack! points: ${_pos.x},${_pos.y} ${other._pos.x},${other._pos.y} diffs:$diffX $diffY');
     //Attacks are melee-range; using XOR logic requires character to be
     //nondiagonally adjacent to their target to attack.
-    if ((diffX == 1 || diffY == 1) && !(diffX == 1 && diffY == 1)) {
+    if ((diffX == 1 || diffY == 1) && !(diffX == 1 && diffY == 1) && !(diffX > 1 || diffY > 1)) {
       other._hpCurrent -= this._attackPower;
       window.alert('${other.name} has ${other._hpCurrent} HP left!');
       if (other._hpCurrent <= 0) {

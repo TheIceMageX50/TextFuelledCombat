@@ -32,7 +32,7 @@ class Path
    * be >= 0 and < getLength();
    * @return The step information, the position on the map.
    */
-  Node getStep(int index) => _steps[0];
+  Node getStep(int index) => _steps[index];
   
   //getX(index), getY(index) removed because whatever is using Path.getStep can simply
   //have code like path.getStep(0).x; path.getStep(0).y;
