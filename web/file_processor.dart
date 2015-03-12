@@ -56,8 +56,8 @@ class FileProcessor
     int ret = _charAttackMappings[randKey];
     _charCountsAttack[randKey]--;
     if (_charCountsAttack[randKey] == 0) {
-      _charTileMappings.remove(randKey);
-      _charCountsTile.remove(randKey);  
+      _charAttackMappings.remove(randKey);
+      _charCountsAttack.remove(randKey);  
     }
     return ret;
   }
