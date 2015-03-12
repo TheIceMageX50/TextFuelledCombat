@@ -120,6 +120,7 @@ class GameMap implements TileBasedMap
             if (i == 0 || j == 0 || i == height - 1 || j == width - 1) {
               //Dealing with a border tile, just roll for a traversable.
               _grid[i][j] = _rollTraversableType();
+              countKeys = fileProcessor._charCountsTile.keys.toList();
             } else {
               //Need to ensure countKeys does not contain any chars that were
               //removed from the charCounts map.
