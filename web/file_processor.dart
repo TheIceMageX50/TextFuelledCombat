@@ -38,6 +38,15 @@ class FileProcessor
           //TODO handle case where current char does not exist as a Map key.
         }
       }
+      List<String> zeroedKeys = _charCountsTile.keys.where((String k) {
+        return _charCountsTile[k] == 0;
+      }).toList();
+      //clean up map, removing zero-valued keys
+      for (int i = 0; i < zeroedKeys.length; i++) {
+        _charCountsTile.remove(zeroedKeys[i]);
+        _charTileMappings.remove(zeroedKeys[i]);
+        _charAttackMappings.remove(zeroedKeys[i]);
+      }
       fileIsRead.complete(true);
     });
     reader.readAsText(txtFile);
@@ -51,7 +60,6 @@ class FileProcessor
       return !chargee._weaknesses.contains(_charAttackMappings[str]);
     }).toList();
     int rand = rng.nextInt(keys.length);
-    
     String randKey = keys[rand];
     int ret = _charAttackMappings[randKey];
     _charCountsAttack[randKey]--;
@@ -66,7 +74,12 @@ class FileProcessor
   {
     _charCountsTile[chosenChar]--;
     if (_charCountsTile[chosenChar] == 0) {
+      print('$chosenChar exhausted!');
       _exhaustedChars[chosenChar] = _charTileMappings.remove(chosenChar);
+      //Also remove char from attack mapping, because otherwise when the attack
+      //charge assigning code runs it has the chance of selecting a character
+      //which will have already been "exhausted" during map generation.
+      _charAttackMappings.remove(chosenChar);
       _charCountsTile.remove(chosenChar);  
     }
   }
