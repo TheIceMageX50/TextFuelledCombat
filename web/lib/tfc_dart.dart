@@ -32,7 +32,7 @@ part '../tile_type_enum.dart';
 part 'utils.dart';
 
 //exceptions
-part '../unknown_tile_exception.dart';
+part '../tfc_exceptions.dart';
 //---------------------------------------
 //Global constants
 const int TILE_DIM = 32;
