@@ -25,7 +25,7 @@ class Character implements Mover
   CharType _type;
   bool _tired;
   Map<AttackType, int> _attackCharges;
-  List<int> _weaknesses;
+  List<AttackType> _weaknesses;
   
   static List<AttackType> ALL_TYPES = [AttackType.AIR, AttackType.WATER,
                                        AttackType.FIRE, AttackType.EARTH,
@@ -37,6 +37,8 @@ class Character implements Mover
   int get hpMax => _hpMax;
   int get hpCurrent => _hpCurrent;
   int get mobility => _mobility;
+  List<AttackType> get weaknesses => _weaknesses;
+  Map<AttackType, int> get attackCharges => _attackCharges;
   Point get pos => _pos;
   
   set tired(bool isTired)
@@ -52,7 +54,7 @@ class Character implements Mover
     _type = type;
     _tired = false;
     _attackCharges = new Map<AttackType, int>();
-    _weaknesses = new List<int>();
+    _weaknesses = new List<AttackType>();
     
     _attackCharges[AttackType.FIRE] = 0;
     _attackCharges[AttackType.WATER] = 0;
@@ -68,12 +70,14 @@ class Character implements Mover
         _hpCurrent = 100;
         _attackPower = 10;
         _mobility = 7;
+        _weaknesses.add(AttackType.MACE.value);
       break;
       case CharType.ENEMY:
         _hpMax = 100;
         _hpCurrent = 100;
         _attackPower = 8;
         _mobility = 7;
+        _weaknesses.add(AttackType.WATER.value);
       break;
       default: throw "Error: Invalid type argument supplied.";
     }
@@ -93,13 +97,13 @@ class Character implements Mover
         damage *= WEAKNESS_DMG_MULTIPLIER;
       }
       other._hpCurrent -= damage;
-      window.alert('${other.name} has ${other._hpCurrent} HP left!');
+      //window.alert('${other.name} has ${other._hpCurrent} HP left!');
       if (other._hpCurrent <= 0) {
         other._sprite.kill();
       }
       _attackCharges[atkType]--;
     } else {
-      throw new Exception('Target out of range!');
+      throw new AttackRangeException('Target out of range!');
     }
   }
   
@@ -115,7 +119,9 @@ class Character implements Mover
     }
   }
   
-  bool isWeakTo(int type) => _weaknesses.any((int atkType) => atkType == type);
+  bool hasCharge(AttackType at) => _attackCharges[at] > 0;
+  
+  bool isWeakTo(AttackType type) => _weaknesses.any((AttackType atkType) => atkType == type);
   
   void moveToFix(int x, int y, GameMap map, Game game, {Pathfinder finder, Path precomputed})
   {

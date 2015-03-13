@@ -45,10 +45,11 @@ class MapRenderState extends State
 {
   GameMap map;
   String assetPath;
-  Sprite playerChar;
   List<Character> playerTeam, enemyTeam;
+  Map<AttackType, Sprite> attackButtons;
   Character selected;
   Text playerText, enemyText;
+  AttackType selectedPlayerAtk;
   final String placeholderText = '----\n--/--';
   int turnVal = 0; //0 is player's turn, 1 is enemy's turn.
   
@@ -80,10 +81,11 @@ class MapRenderState extends State
     this.assetPath = assetPath; 
     playerTeam = new List<Character>();
     enemyTeam = new List<Character>();
+    attackButtons = new Map<AttackType, Sprite>();
   }
   
   preload()
-  {  
+  {
     game.load.image('button', '$assetPath/button_blue.png');
     //character sprites
     game.load.image('roshan', '$assetPath/roshan.png');
@@ -105,26 +107,24 @@ class MapRenderState extends State
     InputElement ie = querySelector('#test');
     ie.style.display = 'none';
     final int mapOffsetX = 96, mapOffsetY = 32;
-    Sprite temp;
-    
+    Sprite temp, waitButton;
     
     for (int i = 0; i < map.height; i++) {
       for (int j = 0; j < map.width; j++) {
         switch(map.whatTile(i, j)) {
-          //TODO Make Tile dimension variables so as not to hardcode 32
-          case TileType.DIRT: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'dirt');
+          case TileType.DIRT: temp = game.add.sprite(j * TILE_DIM + MAP_OFFSETX, i * TILE_DIM + mapOffsetY, 'dirt');
           break;
-          case TileType.DRY_LAND: temp = game.add.sprite(j * 32 + mapOffsetX , i * 32 + mapOffsetY, 'dryland');
+          case TileType.DRY_LAND: temp = game.add.sprite(j * TILE_DIM + MAP_OFFSETX , i * TILE_DIM + mapOffsetY, 'dryland');
           break;
-          case TileType.GRASS: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'grass');
+          case TileType.GRASS: temp = game.add.sprite(j * TILE_DIM + MAP_OFFSETX, i * TILE_DIM + mapOffsetY, 'grass');
           break;
-          case TileType.LAVA: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'lava');
+          case TileType.LAVA: temp = game.add.sprite(j * TILE_DIM + MAP_OFFSETX, i * TILE_DIM + mapOffsetY, 'lava');
           break;
-          case TileType.VOID: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'void');
+          case TileType.VOID: temp = game.add.sprite(j * TILE_DIM + MAP_OFFSETX, i * TILE_DIM + mapOffsetY, 'void');
           break;
-          case TileType.WATER: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'water');
+          case TileType.WATER: temp = game.add.sprite(j * TILE_DIM + MAP_OFFSETX, i * TILE_DIM + mapOffsetY, 'water');
           break;
-          case TileType.WOOD_TILE: temp = game.add.sprite(j * 32 + mapOffsetX, i * 32 + mapOffsetY, 'wood');
+          case TileType.WOOD_TILE: temp = game.add.sprite(j * TILE_DIM + MAP_OFFSETX, i * TILE_DIM + mapOffsetY, 'wood');
           break;
         }
         temp.inputEnabled = true;
@@ -163,12 +163,24 @@ class MapRenderState extends State
     TextStyle style = new TextStyle(fill:'#fffff' , font:'10px Arial' , align:'left');
     playerText = game.add.text(10, 20, placeholderText, style);
     enemyText = game.add.text(10, 60, placeholderText, style);
-    //Text waitButton = game.add.text(game.world.centerX, 100, 'Wait', style);
-  }
-  
-  update()
-  {
     
+    //Add buttons to the world
+    waitButton = addGameButton(game, world.centerX, world.height - 100, 'button', 'Wait', onWaitClicked);
+    //waitButton..inputEnabled = true;
+    attackButtons[AttackType.SWORD] = addGameButton(
+        game,
+        0,
+        100,
+        'button',
+        'Sword Attack',
+        onSwordButtonClicked);
+    attackButtons[AttackType.WATER] = addGameButton(
+        game,
+        0,
+        138,
+        'button',
+        'Water Magic',
+        onWaterButtonClicked);
   }
   
   void onPlayerClicked(Sprite sprite, Pointer p)
@@ -178,6 +190,10 @@ class MapRenderState extends State
     }, orElse: () { /*Do nothing */ });
     playerText.setText("${selected.name}\n${selected.hpCurrent}/${selected.hpMax}");
     window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y})");
+    //Enable all attack buttons for those attacks which the character has charges.
+    attackButtons.forEach((AttackType type, Sprite sprite) {
+      if (selected.hasCharge(type)) sprite.inputEnabled = true;
+    });
   }
   
   void onEnemyClicked(Sprite sprite, Pointer p)
@@ -189,19 +205,24 @@ class MapRenderState extends State
     
     if (selected != null) {
       try {
-        selected..attack(target)
-          ..tired = true
-          ..sprite.inputEnabled = false;
-        selected = null;
-        enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
-      
-        if (target.hpCurrent <= 0) {
-          enemyTeam.remove(target);
-          enemyText.setText(placeholderText);
+        if (selectedPlayerAtk != null) {
+          selected..attack(selectedPlayerAtk, target)
+            ..tired = true
+            ..sprite.inputEnabled = false;
+          selectedPlayerAtk = null;
+          selected = null;
+          enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
+        
+          if (target.hpCurrent <= 0) {
+            enemyTeam.remove(target);
+            enemyText.setText(placeholderText);
+          }
+        } else {
+          //TODO Error feedback to UI e.g. "You must select an attack type."
         }
-      } catch (e) {
+      } on AttackRangeException catch (e) {
         //Enemy is out of range so attack could not be performed.
-        selected.tired = true;
+        print('Player failed attack! Out of range.');
       }
       bool allTired = playerTeam.every((Character player) {
         return player.tired;
@@ -231,12 +252,41 @@ class MapRenderState extends State
     }
   }
   
+  void onWaitClicked(Sprite sprite, Pointer p)
+  {
+    //TODO Add code to have some kind of confirmation dialogue
+    if (selected != null) {
+      selected.tired = true;
+      bool allTired = playerTeam.every((Character player) {
+        return player.tired;
+      });
+      if (allTired) turn = 1;
+    }
+  }
+  
+  void onSwordButtonClicked(Sprite sprite, Pointer p)
+  {
+    if (selected != null && selected.hasCharge(AttackType.SWORD)) {
+      print('Player mode - Sword attack!');
+      selectedPlayerAtk = AttackType.SWORD;
+    }
+  }
+  
+  void onWaterButtonClicked(Sprite sprite, Pointer p)
+  {
+    if (selected != null && selected.hasCharge(AttackType.WATER)) {
+      print('Player mode - Water attack!');
+      selectedPlayerAtk = AttackType.WATER;
+    }
+  }
+
   void playEnemyTurn()
   {
     enemyTeam.forEach((Character enemy) {
       //TODO First and foremost need to check if a player char is already adjacent.
       //First, figure out what player char is closest.
       //Simple approach of assuming first is closest then testing the rest
+      AttackType chosenType;
       Character targetPlayer = playerTeam[0];
       int manhattanDistance = manhattanDist(enemy.pos.x,
                                             enemy.pos.y,
@@ -274,7 +324,8 @@ class MapRenderState extends State
       
       try {
         print('Enemy is attacking!');
-        enemy.attack(targetPlayer);
+        chosenType = _pickEnemyAttackType(enemy, targetPlayer);
+        enemy.attack(chosenType, targetPlayer);
         //update after dealing damage
         playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
       } catch (e) {
@@ -286,6 +337,34 @@ class MapRenderState extends State
     });
     //All enemies will have moved and/or attacked now, end their turn!
     turn = 0;
+  }
+  
+  AttackType _pickEnemyAttackType(Character enemy, Character target)
+  {
+    int rand = RNG.nextInt(5);
+    if (rand < 3) {
+      Map<AttackType, int> weaknessCharges; 
+      enemy.attackCharges.forEach((AttackType t, int charges) {
+        if (target.isWeakTo(t)) weaknessCharges[t] = charges;
+      });
+      //Of all AttackTypes the target is weak to, that the attacking enemy has
+      //charges for, select the one which has the most charges remaining.
+      return weaknessCharges.keys
+        .reduce((AttackType t1, AttackType t2) {
+        return weaknessCharges[t1] >= weaknessCharges[t2] ? weaknessCharges[t1] : weaknessCharges[t2];
+      });
+    } else {
+      //Unlucky (for the enemy!) roll...select the most charged type the target is
+      //not weak to.
+      Map<AttackType, int> nonweakCharges;
+      enemy.attackCharges.forEach((AttackType t, int charges) {
+        if (target.isWeakTo(t) == false) nonweakCharges[t] = charges;
+      });
+      return nonweakCharges.keys
+        .reduce((AttackType t1, AttackType t2) {
+        return nonweakCharges[t1] >= nonweakCharges[t2] ? nonweakCharges[t1] : nonweakCharges[t2];
+      });
+    }
   }
 }
 
