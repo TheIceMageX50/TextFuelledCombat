@@ -70,14 +70,14 @@ class Character implements Mover
         _hpCurrent = 100;
         _attackPower = 10;
         _mobility = 7;
-        _weaknesses.add(AttackType.MACE.value);
+        _weaknesses.add(AttackType.MACE);
       break;
       case CharType.ENEMY:
         _hpMax = 100;
         _hpCurrent = 100;
         _attackPower = 8;
         _mobility = 7;
-        _weaknesses.add(AttackType.WATER.value);
+        _weaknesses.add(AttackType.WATER);
       break;
       default: throw "Error: Invalid type argument supplied.";
     }

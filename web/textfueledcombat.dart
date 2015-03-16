@@ -150,9 +150,7 @@ class MapRenderState extends State
     [playerTeam, enemyTeam].forEach((List<Character> team) {
       team.forEach((Character char) {
         int tempVal;
-        for (int i = 0; i < 10; i++) {
-          //TODO store value (10 or w/e i decide) somewhere? it is
-          //the total amount of attack charges each char is given.
+        for (int i = 0; i < ATTACK_CHARGE_COUNT; i++) {
           tempVal = map.fileProcessor.takeRandAtkType(char);
           char.addCharge(tempVal);
         }
@@ -177,7 +175,7 @@ class MapRenderState extends State
     attackButtons[AttackType.WATER] = addGameButton(
         game,
         0,
-        138,
+        150,
         'button',
         'Water Magic',
         onWaterButtonClicked);
@@ -192,7 +190,11 @@ class MapRenderState extends State
     window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y})");
     //Enable all attack buttons for those attacks which the character has charges.
     attackButtons.forEach((AttackType type, Sprite sprite) {
-      if (selected.hasCharge(type)) sprite.inputEnabled = true;
+      if (selected.hasCharge(type))  {sprite.inputEnabled = true;
+      } else {
+       print(selected.attackCharges);
+       print("No charges of type ${type.value} remaining..");
+      };
     });
   }
   
@@ -219,6 +221,8 @@ class MapRenderState extends State
           }
         } else {
           //TODO Error feedback to UI e.g. "You must select an attack type."
+          //Temporary impl; alert message
+          window.alert('You must select an attack type first.');
         }
       } on AttackRangeException catch (e) {
         //Enemy is out of range so attack could not be performed.
@@ -328,7 +332,7 @@ class MapRenderState extends State
         enemy.attack(chosenType, targetPlayer);
         //update after dealing damage
         playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
-      } catch (e) {
+      } on AttackRangeException catch (e) {
         print("Enemy attack failed! range issue");
         //Enemy is too far away from player to attack, that's ok.
       } finally {
@@ -343,7 +347,7 @@ class MapRenderState extends State
   {
     int rand = RNG.nextInt(5);
     if (rand < 3) {
-      Map<AttackType, int> weaknessCharges; 
+      Map<AttackType, int> weaknessCharges = new Map<AttackType, int>(); 
       enemy.attackCharges.forEach((AttackType t, int charges) {
         if (target.isWeakTo(t)) weaknessCharges[t] = charges;
       });
@@ -356,13 +360,13 @@ class MapRenderState extends State
     } else {
       //Unlucky (for the enemy!) roll...select the most charged type the target is
       //not weak to.
-      Map<AttackType, int> nonweakCharges;
+      Map<AttackType, int> nonweakCharges = new Map<AttackType, int>();
       enemy.attackCharges.forEach((AttackType t, int charges) {
         if (target.isWeakTo(t) == false) nonweakCharges[t] = charges;
       });
       return nonweakCharges.keys
         .reduce((AttackType t1, AttackType t2) {
-        return nonweakCharges[t1] >= nonweakCharges[t2] ? nonweakCharges[t1] : nonweakCharges[t2];
+        return nonweakCharges[t1] >= nonweakCharges[t2] ? t1 : t2;
       });
     }
   }

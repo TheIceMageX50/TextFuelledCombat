@@ -39,5 +39,7 @@ const int TILE_DIM = 32;
 const int MAP_OFFSETX = 128;
 const int MAP_OFFSETY = 64;
 const int CHAR_HEIGHT = 46;
+///The total number of attack charges to be assigned to a single [Character].
+const int ATTACK_CHARGE_COUNT = 30;
 const double WEAKNESS_DMG_MULTIPLIER = 1.1;
 final Random RNG = new Random();
