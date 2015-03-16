@@ -24,6 +24,7 @@ class Character implements Mover
   Sprite _sprite;
   CharType _type;
   bool _tired;
+  bool _hasMoved;
   Map<AttackType, int> _attackCharges;
   List<AttackType> _weaknesses;
   
@@ -34,6 +35,7 @@ class Character implements Mover
   String get name => _name;
   Sprite get sprite => _sprite;
   bool get tired => _tired;
+  bool get hasMoved => _hasMoved;
   int get hpMax => _hpMax;
   int get hpCurrent => _hpCurrent;
   int get mobility => _mobility;
@@ -44,7 +46,7 @@ class Character implements Mover
   set tired(bool isTired)
   {
     _tired = isTired;
-  }
+  } 
   
   Character(String name, CharType type, Point pos)
   {
@@ -53,6 +55,7 @@ class Character implements Mover
     _pos = pos;
     _type = type;
     _tired = false;
+    _hasMoved = false;
     _attackCharges = new Map<AttackType, int>();
     _weaknesses = new List<AttackType>();
     
@@ -102,6 +105,7 @@ class Character implements Mover
         other._sprite.kill();
       }
       _attackCharges[atkType]--;
+      _tired = true;
     } else {
       throw new AttackRangeException('Target out of range!');
     }
@@ -169,6 +173,7 @@ class Character implements Mover
       map._units[x][y] = _name;
       _pos.x = x;
       _pos.y = y;
+      _hasMoved = true;
     }
   }
   

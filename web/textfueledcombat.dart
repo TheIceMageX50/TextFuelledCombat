@@ -68,6 +68,8 @@ class MapRenderState extends State
         });
       } else {
         enemyTeam.forEach((Character enemy) {
+          //TODO Remove this since it's effectively obsolete? Since as it stands
+          //enemies can't "cheat" by moving more than they should.
           enemy.tired = false;
         });
         playEnemyTurn();
@@ -237,7 +239,7 @@ class MapRenderState extends State
   
   void listenerTiles(Sprite sprite, Pointer p)
   {
-    if (selected != null) { //Avoid crash, and needless computations, if no character selected
+    if (selected != null && selected.hasMoved == false) { //Avoid crash, and needless computations, if no character selected
       //bool to avoid some needless iterations, i.e. once the right tile is found
       bool shouldEnd = false;
       for (int i = 0; i < map.height; i++) {
