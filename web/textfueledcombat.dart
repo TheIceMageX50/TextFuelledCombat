@@ -64,6 +64,7 @@ class MapRenderState extends State
         playerText.setText(placeholderText);
         playerTeam.forEach((Character player) {
           player.tired = false;
+          player.hasMoved = false;
           player.sprite.inputEnabled = true;
         });
       } else {
@@ -100,6 +101,12 @@ class MapRenderState extends State
     game.load.image('void', '$assetPath/void.png');
     game.load.image('water', '$assetPath/water.png');
     game.load.image('wood', '$assetPath/wood_tile.png');
+    
+    //sounds and music
+    game.load.audio('sword', '$assetPath/sword.ogg', true);
+    game.load.audio('waterSound', '$assetPath/waterEdit.ogg', true);
+    game.load.audio('air', '$assetPath/air_attack.ogg', true);
+    game.load.audio('fire', '$assetPath/fireloop.ogg', true);
   } 
   
   create()
@@ -181,6 +188,13 @@ class MapRenderState extends State
         'button',
         'Water Magic',
         onWaterButtonClicked);
+    attackButtons[AttackType.FIRE] = addGameButton(
+        game,
+        0,
+        200,
+        'button',
+        'Fire Magic',
+        onFireButtonClicked);
   }
   
   void onPlayerClicked(Sprite sprite, Pointer p)
@@ -210,6 +224,7 @@ class MapRenderState extends State
     if (selected != null) {
       try {
         if (selectedPlayerAtk != null) {
+          playAttackSound(selectedPlayerAtk);
           selected..attack(selectedPlayerAtk, target)
             ..tired = true
             ..sprite.inputEnabled = false;
@@ -283,6 +298,14 @@ class MapRenderState extends State
     if (selected != null && selected.hasCharge(AttackType.WATER)) {
       print('Player mode - Water attack!');
       selectedPlayerAtk = AttackType.WATER;
+    }
+  }
+  
+  void onFireButtonClicked(Sprite sprite, Pointer p)
+  {
+    if (selected != null && selected.hasCharge(AttackType.FIRE)) {
+      print('Player mode - Fire attack!');
+      selectedPlayerAtk = AttackType.FIRE;
     }
   }
 
@@ -370,6 +393,26 @@ class MapRenderState extends State
         .reduce((AttackType t1, AttackType t2) {
         return nonweakCharges[t1] >= nonweakCharges[t2] ? t1 : t2;
       });
+    }
+  }
+  
+  void playAttackSound(AttackType type)
+  {
+    switch (type) {
+      case AttackType.SWORD: game.sound.play('sword');
+      break;
+      case AttackType.WATER: game.sound.play('waterSound');
+      break;
+      case AttackType.AIR: game.sound.play('air');
+      break;
+      case AttackType.FIRE: 
+        int loopCount = 0;
+        Sound s = game.add.sound('fire', 1.0, true);
+        s.onLoop.add((Sound s) {
+          loopCount++;
+          if (loopCount == 3) s.stop(); 
+        });
+        s.play();
     }
   }
 }

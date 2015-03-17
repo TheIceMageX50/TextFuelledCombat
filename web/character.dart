@@ -46,7 +46,12 @@ class Character implements Mover
   set tired(bool isTired)
   {
     _tired = isTired;
-  } 
+  }
+  
+  set hasMoved(bool moved)
+  {
+    _hasMoved = moved;
+  }
   
   Character(String name, CharType type, Point pos)
   {
