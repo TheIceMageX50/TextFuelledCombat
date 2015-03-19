@@ -45,7 +45,6 @@ class MapRenderState extends State
 {
   GameMap map;
   String assetPath;
-  List<Character> playerTeam, enemyTeam;
   Map<AttackType, Sprite> attackButtons;
   Character selected;
   Text playerText, enemyText;
@@ -62,13 +61,13 @@ class MapRenderState extends State
       if (val == 0) {
         //Reset playerText
         playerText.setText(placeholderText);
-        playerTeam.forEach((Character player) {
+        map.playerTeam.forEach((Character player) {
           player.tired = false;
           player.hasMoved = false;
           player.sprite.inputEnabled = true;
         });
       } else {
-        enemyTeam.forEach((Character enemy) {
+        map.enemyTeam.forEach((Character enemy) {
           //TODO Remove this since it's effectively obsolete? Since as it stands
           //enemies can't "cheat" by moving more than they should.
           enemy.tired = false;
@@ -82,8 +81,6 @@ class MapRenderState extends State
   {
     this.map = map;
     this.assetPath = assetPath; 
-    playerTeam = new List<Character>();
-    enemyTeam = new List<Character>();
     attackButtons = new Map<AttackType, Sprite>();
   }
   
@@ -106,7 +103,8 @@ class MapRenderState extends State
     game.load.audio('sword', '$assetPath/sword.ogg', true);
     game.load.audio('waterSound', '$assetPath/waterEdit.ogg', true);
     game.load.audio('air', '$assetPath/air_attack.ogg', true);
-    game.load.audio('fire', '$assetPath/fireloop.ogg', true);
+    game.load.audio('fire', '$assetPath/fire_attack.ogg', true);
+    game.load.audio('earth', '$assetPath/earth_attack.ogg', true);
   } 
   
   create()
@@ -142,21 +140,24 @@ class MapRenderState extends State
       }
     }
     //Map rendering is done, need to setup and render characters now.
-    Character player = new Character("Testguy", CharType.PLAYER, new Point(0, 0));
-    Character enemy = new Character('Devil', CharType.ENEMY, new Point(5, 1));
-    map.setUnitAt(player.name, 0, 0);
-    map.setUnitAt(enemy.name, 5, 1);
-    player.initSprite(game);
-    enemy.initSprite(game);
-    player.sprite.inputEnabled = true;
-    player.sprite.events.onInputDown.add(onPlayerClicked);
-    enemy.sprite.inputEnabled = true;
-    enemy.sprite.events.onInputDown.add(onEnemyClicked);
-    //Adding player and enemy characters to the teams
-    playerTeam.add(player);
-    enemyTeam.add(enemy);
+    Character player, enemy;
+    for (int i = 0; i < 2; i++) {
+      player = new Character("Testguy$i", CharType.PLAYER, new Point(0, 3 + i));
+      enemy = new Character('Devil$i', CharType.ENEMY, new Point(map.height - 1, 3 + i));
+      map.setUnitAt(player.name, 0, 3 + i);
+      map.setUnitAt(enemy.name, map.height - 1, 3 + i);
+      player.initSprite(game);
+      enemy.initSprite(game);
+      player.sprite.inputEnabled = true;
+      player.sprite.events.onInputDown.add(onPlayerClicked);
+      enemy.sprite.inputEnabled = true;
+      enemy.sprite.events.onInputDown.add(onEnemyClicked);
+      //Adding player and enemy characters to the teams
+      map.playerTeam.add(player);
+      map.enemyTeam.add(enemy);
+    }
     //For all characters, assign some attack charges.
-    [playerTeam, enemyTeam].forEach((List<Character> team) {
+    [map.playerTeam, map.enemyTeam].forEach((List<Character> team) {
       team.forEach((Character char) {
         int tempVal;
         for (int i = 0; i < ATTACK_CHARGE_COUNT; i++) {
@@ -181,17 +182,24 @@ class MapRenderState extends State
         'button',
         'Sword Attack',
         onSwordButtonClicked);
-    attackButtons[AttackType.WATER] = addGameButton(
+    attackButtons[AttackType.MACE] = addGameButton(
         game,
         0,
         150,
+        'button',
+        'Mace Attack',
+        onMaceButtonClicked);
+    attackButtons[AttackType.WATER] = addGameButton(
+        game,
+        0,
+        200,
         'button',
         'Water Magic',
         onWaterButtonClicked);
     attackButtons[AttackType.FIRE] = addGameButton(
         game,
         0,
-        200,
+        250,
         'button',
         'Fire Magic',
         onFireButtonClicked);
@@ -199,16 +207,17 @@ class MapRenderState extends State
   
   void onPlayerClicked(Sprite sprite, Pointer p)
   {
-    selected = playerTeam.firstWhere((Character c) {
+    selected = map.playerTeam.firstWhere((Character c) {
       return c.sprite == sprite;
     }, orElse: () { /*Do nothing */ });
     playerText.setText("${selected.name}\n${selected.hpCurrent}/${selected.hpMax}");
     window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y})");
     //Enable all attack buttons for those attacks which the character has charges.
     attackButtons.forEach((AttackType type, Sprite sprite) {
-      if (selected.hasCharge(type))  {sprite.inputEnabled = true;
+      if (selected.hasCharge(type)) {
+        sprite.inputEnabled = true;
       } else {
-       print(selected.attackCharges);
+       //print(selected.attackCharges);
        print("No charges of type ${type.value} remaining..");
       };
     });
@@ -216,7 +225,7 @@ class MapRenderState extends State
   
   void onEnemyClicked(Sprite sprite, Pointer p)
   {
-    Character target = enemyTeam.firstWhere((Character c) {
+    Character target = map.enemyTeam.firstWhere((Character c) {
       return sprite == c.sprite;
     });
     enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
@@ -233,7 +242,7 @@ class MapRenderState extends State
           enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
         
           if (target.hpCurrent <= 0) {
-            enemyTeam.remove(target);
+            map.enemyTeam.remove(target);
             enemyText.setText(placeholderText);
           }
         } else {
@@ -245,7 +254,7 @@ class MapRenderState extends State
         //Enemy is out of range so attack could not be performed.
         print('Player failed attack! Out of range.');
       }
-      bool allTired = playerTeam.every((Character player) {
+      bool allTired = map.playerTeam.every((Character player) {
         return player.tired;
       });
       if (allTired) turn = 1;
@@ -278,7 +287,7 @@ class MapRenderState extends State
     //TODO Add code to have some kind of confirmation dialogue
     if (selected != null) {
       selected.tired = true;
-      bool allTired = playerTeam.every((Character player) {
+      bool allTired = map.playerTeam.every((Character player) {
         return player.tired;
       });
       if (allTired) turn = 1;
@@ -290,6 +299,14 @@ class MapRenderState extends State
     if (selected != null && selected.hasCharge(AttackType.SWORD)) {
       print('Player mode - Sword attack!');
       selectedPlayerAtk = AttackType.SWORD;
+    }
+  }
+  
+  void onMaceButtonClicked(Sprite sprite, Pointer p)
+  {
+    if (selected != null && selected.hasCharge(AttackType.MACE)) {
+      print('Player mode - Mace attack!');
+      selectedPlayerAtk = AttackType.MACE;
     }
   }
   
@@ -308,25 +325,41 @@ class MapRenderState extends State
       selectedPlayerAtk = AttackType.FIRE;
     }
   }
+  
+  void onEarthButtonClicked(Sprite sprite, Pointer p)
+  {
+    if (selected != null && selected.hasCharge(AttackType.EARTH)) {
+      print('Player mode - Earth attack!');
+      selectedPlayerAtk = AttackType.EARTH;
+    }
+  }
+  
+  void onAirButtonClicked(Sprite sprite, Pointer p)
+  {
+    if (selected != null && selected.hasCharge(AttackType.AIR)) {
+      print('Player mode - Air attack!');
+      selectedPlayerAtk = AttackType.AIR;
+    }
+  }
 
   void playEnemyTurn()
   {
-    enemyTeam.forEach((Character enemy) {
+    map.enemyTeam.forEach((Character enemy) {
       //TODO First and foremost need to check if a player char is already adjacent.
       //First, figure out what player char is closest.
       //Simple approach of assuming first is closest then testing the rest
       AttackType chosenType;
-      Character targetPlayer = playerTeam[0];
+      Character targetPlayer = map.playerTeam[0];
       int manhattanDistance = manhattanDist(enemy.pos.x,
                                             enemy.pos.y,
                                             targetPlayer.pos.x,
                                             targetPlayer.pos.y);
       int manhattanDistanceCurr;
-      for (int i = 1; i < playerTeam.length; i++) {
-        manhattanDistanceCurr = manhattanDist(enemy.pos.x, enemy.pos.y, playerTeam[i].pos.x, playerTeam[i].pos.y);
+      for (int i = 1; i < map.playerTeam.length; i++) {
+        manhattanDistanceCurr = manhattanDist(enemy.pos.x, enemy.pos.y, map.playerTeam[i].pos.x, map.playerTeam[i].pos.y);
         if (manhattanDistanceCurr < manhattanDistance) {
           manhattanDistance = manhattanDistanceCurr;
-          targetPlayer = playerTeam[i];
+          targetPlayer = map.playerTeam[i];
         }
       }
       enemyText.setText("${enemy.name}\n${enemy.hpCurrent}/${enemy.hpMax}");
@@ -357,6 +390,7 @@ class MapRenderState extends State
         enemy.attack(chosenType, targetPlayer);
         //update after dealing damage
         playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
+        if (targetPlayer.hpCurrent <= 0) map.playerTeam.remove(targetPlayer);
       } on AttackRangeException catch (e) {
         print("Enemy attack failed! range issue");
         //Enemy is too far away from player to attack, that's ok.
@@ -401,11 +435,14 @@ class MapRenderState extends State
     switch (type) {
       case AttackType.SWORD: game.sound.play('sword');
       break;
+      case AttackType.MACE: game.sound.play('mace');
+      break;
       case AttackType.WATER: game.sound.play('waterSound');
       break;
       case AttackType.AIR: game.sound.play('air');
       break;
       case AttackType.FIRE: 
+        //TODO Sound looping doesn't seem to be working yet, why?
         int loopCount = 0;
         Sound s = game.add.sound('fire', 1.0, true);
         s.onLoop.add((Sound s) {
@@ -413,6 +450,9 @@ class MapRenderState extends State
           if (loopCount == 3) s.stop(); 
         });
         s.play();
+      break;
+      case AttackType.EARTH: game.sound.play('earth');
+      break;
     }
   }
 }
@@ -439,7 +479,7 @@ class FileWaitState extends State
       map.generateMap(ie.files[0])
       .then((_) {
         //TODO Review: Is map.width a good max search distance? 
-        finder = new AStarPathFinder(map, map.width);
+        finder = new AStarPathFinder(map, 50);
         game.state.start('maprender');
       });
     }

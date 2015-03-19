@@ -39,6 +39,7 @@ class Character implements Mover
   int get hpMax => _hpMax;
   int get hpCurrent => _hpCurrent;
   int get mobility => _mobility;
+  CharType get type => _type;
   List<AttackType> get weaknesses => _weaknesses;
   Map<AttackType, int> get attackCharges => _attackCharges;
   Point get pos => _pos;

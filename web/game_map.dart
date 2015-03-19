@@ -9,6 +9,7 @@ class GameMap implements TileBasedMap
 {
   Map<TileType, Tile> _tileTypes;
   List<int> _traversableTypes;
+  List<Character> playerTeam, enemyTeam;
   Array2d<int> _grid;
   Array2d<String> _units;
   Array2d<Sprite> _spriteGrid;
@@ -27,6 +28,8 @@ class GameMap implements TileBasedMap
     _spriteGrid = new Array2d<Sprite>(height, width);
     _tileTypes = new Map<TileType, Tile>();
     _traversableTypes = new List<int>();
+    playerTeam = new List<Character>();
+    enemyTeam = new List<Character>();
     _rng = new Random();
     //arbitrary max search distance of 10...perhaps determine based on map size?
     //Or mobility of characters?
@@ -233,8 +236,22 @@ class GameMap implements TileBasedMap
   //TODO Consider reworking for cases where some characters can move over
   //"untraversable" tiles, e.g. flyers? Probably not going to be a feature in FYP
   //version..
-  bool blocked(Mover mover, int row, int col) => !_traversableTypes.contains(_grid[row][col]);
-  
+  bool blocked(Mover mover, int row, int col)
+  {
+    if (mover == null) {
+      return !_traversableTypes.contains(_grid[row][col]);
+    } else if ((mover as Character).type == CharType.PLAYER) {
+      bool enemyIsAtDest = enemyTeam.any((Character c) {
+        return c.name == _units[row][col];
+      });
+      return !_traversableTypes.contains(_grid[row][col]) || enemyIsAtDest;
+    } else if ((mover as Character).type == CharType.ENEMY) {
+      bool enemyIsAtDest = enemyTeam.any((Character c) {
+        return c.name == _units[row][col];
+      });
+      return !_traversableTypes.contains(_grid[row][col]) || enemyIsAtDest;
+    }
+  }
   double getCost(Mover mover, int startRow, int startCol, int targetRow, int targetCol)
   {
     //Cover our bases; this should only be used to test moving from one tile to another
