@@ -21,7 +21,7 @@ class Character implements Mover
   int _hpCurrent, _attackPower, _mobility;
   String _name;
   Point _pos;
-  Sprite _sprite;
+  Sprite _sprite, hpBar;
   CharType _type;
   bool _tired;
   bool _hasMoved;

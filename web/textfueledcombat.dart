@@ -46,10 +46,12 @@ class MapRenderState extends State
   GameMap map;
   String assetPath;
   Map<AttackType, Sprite> attackButtons;
+  Map<AttackType, Text> chargeDisplays;
   Character selected;
   Text playerText, enemyText;
   AttackType selectedPlayerAtk;
   final String placeholderText = '----\n--/--';
+  Sprite hpBar;
   int turnVal = 0; //0 is player's turn, 1 is enemy's turn.
   
   set turn(int val)
@@ -82,14 +84,18 @@ class MapRenderState extends State
     this.map = map;
     this.assetPath = assetPath; 
     attackButtons = new Map<AttackType, Sprite>();
+    chargeDisplays = new Map<AttackType, Text>();
   }
   
   preload()
   {
     game.load.image('button', '$assetPath/button_blue.png');
+    game.load.image('hpBar', '$assetPath/hp_bar_base.png');
     //character sprites
     game.load.image('roshan', '$assetPath/roshan.png');
     game.load.image('devil', '$assetPath/devil.png');
+    game.load.image('devilPortrait', '$assetPath/devil_portrait.png');
+    game.load.image('playerPortrait', '$assetPath/roshan_portrait.png');
     //tile sprites
     game.load.image('dirt', '$assetPath/dirt.png');
     game.load.image('dryland', '$assetPath/wood_ph.png');
@@ -98,7 +104,6 @@ class MapRenderState extends State
     game.load.image('void', '$assetPath/void.png');
     game.load.image('water', '$assetPath/water.png');
     game.load.image('wood', '$assetPath/wood_tile.png');
-    
     //sounds and music
     game.load.audio('sword', '$assetPath/sword.ogg', true);
     game.load.audio('waterSound', '$assetPath/waterEdit.ogg', true);
@@ -141,7 +146,8 @@ class MapRenderState extends State
     }
     //Map rendering is done, need to setup and render characters now.
     Character player, enemy;
-    for (int i = 0; i < 2; i++) {
+    //TODO Replace upper limit of i (3) with TEAM_SIZE constant.
+    for (int i = 0; i < 3; i++) {
       player = new Character("Testguy$i", CharType.PLAYER, new Point(0, 3 + i));
       enemy = new Character('Devil$i', CharType.ENEMY, new Point(map.height - 1, 3 + i));
       map.setUnitAt(player.name, 0, 3 + i);
@@ -156,53 +162,74 @@ class MapRenderState extends State
       map.playerTeam.add(player);
       map.enemyTeam.add(enemy);
     }
-    //For all characters, assign some attack charges.
-    [map.playerTeam, map.enemyTeam].forEach((List<Character> team) {
-      team.forEach((Character char) {
-        int tempVal;
-        for (int i = 0; i < ATTACK_CHARGE_COUNT; i++) {
-          tempVal = map.fileProcessor.takeRandAtkType(char);
-          char.addCharge(tempVal);
-        }
-      });
-    });
+    //For all characters, assign some attack charges and create HP bars.
+    for (int i = 0; i < map.playerTeam.length; i++) {
+      _assignAttackCharges(map.playerTeam[i]);
+      game.add.sprite(0, 20 + 68 * i, getPortraitKey(map.playerTeam[i].type));
+      map.playerTeam[i].hpBar = createHpBar(game, 0, 64 + 68 * i);
+    }
+    for (int i = 0; i < map.enemyTeam.length; i++) {
+      _assignAttackCharges(map.enemyTeam[i]);
+      game.add.sprite(world.width - 104, 20 + 68 * i, getPortraitKey(map.enemyTeam[i].type));
+      map.enemyTeam[i].hpBar = createHpBar(game, world.width - 104, 64 + 68 * i);
+    }
     
     //Setup displays for enemy and player HP.
-    TextStyle style = new TextStyle(fill:'#fffff' , font:'10px Arial' , align:'left');
-    playerText = game.add.text(10, 20, placeholderText, style);
-    enemyText = game.add.text(10, 60, placeholderText, style);
+    TextStyle style = new TextStyle(fill:'#FFFFFF' , font:'10px Arial' , align:'left');
+    playerText = game.add.text(500, 400, placeholderText, style);
+    enemyText = game.add.text(500, 420, placeholderText, style);
     
     //Add buttons to the world
-    waitButton = addGameButton(game, world.centerX, world.height - 100, 'button', 'Wait', onWaitClicked);
-    //waitButton..inputEnabled = true;
+    waitButton = addGameButton(game, 0, 438, 'button', 'Wait', onWaitClicked);
     attackButtons[AttackType.SWORD] = addGameButton(
         game,
         0,
-        100,
+        500,
         'button',
         'Sword Attack',
         onSwordButtonClicked);
     attackButtons[AttackType.MACE] = addGameButton(
         game,
-        0,
-        150,
+        110,
+        500,
         'button',
         'Mace Attack',
         onMaceButtonClicked);
     attackButtons[AttackType.WATER] = addGameButton(
         game,
-        0,
-        200,
+        220,
+        500,
         'button',
         'Water Magic',
         onWaterButtonClicked);
     attackButtons[AttackType.FIRE] = addGameButton(
         game,
-        0,
-        250,
+        330,
+        500,
         'button',
         'Fire Magic',
         onFireButtonClicked);
+    attackButtons[AttackType.AIR] = addGameButton(
+        game,
+        440,
+        500,
+        'button',
+        'Air Magic',
+        onAirButtonClicked);
+    attackButtons[AttackType.EARTH] = addGameButton(
+        game,
+        550,
+        500,
+        'button',
+        'Earth Magic',
+        onEarthButtonClicked);
+    TextStyle style2 = new TextStyle(fill:'#FFFFFF' , font:'20px Arial' , align:'left');
+    chargeDisplays[AttackType.SWORD] = game.add.text(0, 545, '--', style2);
+    chargeDisplays[AttackType.MACE] = game.add.text(110, 545, '--', style2);
+    chargeDisplays[AttackType.WATER] = game.add.text(220, 545, '--', style2);
+    chargeDisplays[AttackType.FIRE] = game.add.text(330, 545, '--', style2);
+    chargeDisplays[AttackType.AIR] = game.add.text(440, 545, '--', style2);
+    chargeDisplays[AttackType.EARTH] = game.add.text(550, 545, '--', style2);
   }
   
   void onPlayerClicked(Sprite sprite, Pointer p)
@@ -217,9 +244,12 @@ class MapRenderState extends State
       if (selected.hasCharge(type)) {
         sprite.inputEnabled = true;
       } else {
-       //print(selected.attackCharges);
-       print("No charges of type ${type.value} remaining..");
+        sprite.inputEnabled = false;
+        print("No charges of type ${type.value} remaining..");
       };
+    });
+    chargeDisplays.forEach((AttackType at, Text text){
+      text.setText(selected.attackCharges[at]);
     });
   }
   
@@ -240,6 +270,7 @@ class MapRenderState extends State
           selectedPlayerAtk = null;
           selected = null;
           enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
+          redrawHpBar(game, target);
         
           if (target.hpCurrent <= 0) {
             map.enemyTeam.remove(target);
@@ -389,6 +420,7 @@ class MapRenderState extends State
         chosenType = _pickEnemyAttackType(enemy, targetPlayer);
         enemy.attack(chosenType, targetPlayer);
         //update after dealing damage
+        redrawHpBar(game, targetPlayer);
         playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
         if (targetPlayer.hpCurrent <= 0) map.playerTeam.remove(targetPlayer);
       } on AttackRangeException catch (e) {
@@ -427,6 +459,15 @@ class MapRenderState extends State
         .reduce((AttackType t1, AttackType t2) {
         return nonweakCharges[t1] >= nonweakCharges[t2] ? t1 : t2;
       });
+    }
+  }
+  
+  void _assignAttackCharges(Character c)
+  {
+    int tempVal;
+    for (int i = 0; i < ATTACK_CHARGE_COUNT; i++) {
+      tempVal = map.fileProcessor.takeRandAtkType(c);
+      c.addCharge(tempVal);
     }
   }
   

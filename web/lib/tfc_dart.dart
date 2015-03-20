@@ -35,6 +35,7 @@ part 'utils.dart';
 part '../tfc_exceptions.dart';
 //---------------------------------------
 //Global constants
+const int TEAM_SIZE = 5;
 const int TILE_DIM = 32;
 const int MAP_OFFSETX = 128;
 const int MAP_OFFSETY = 64;
