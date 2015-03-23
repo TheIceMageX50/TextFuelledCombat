@@ -234,23 +234,37 @@ class MapRenderState extends State
   
   void onPlayerClicked(Sprite sprite, Pointer p)
   {
-    selected = map.playerTeam.firstWhere((Character c) {
-      return c.sprite == sprite;
-    }, orElse: () { /*Do nothing */ });
-    playerText.setText("${selected.name}\n${selected.hpCurrent}/${selected.hpMax}");
-    window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y})");
-    //Enable all attack buttons for those attacks which the character has charges.
-    attackButtons.forEach((AttackType type, Sprite sprite) {
-      if (selected.hasCharge(type)) {
-        sprite.inputEnabled = true;
-      } else {
-        sprite.inputEnabled = false;
-        print("No charges of type ${type.value} remaining..");
-      };
-    });
-    chargeDisplays.forEach((AttackType at, Text text){
-      text.setText(selected.attackCharges[at]);
-    });
+    if (selected == null || selected.tired) {
+      selected = map.playerTeam.firstWhere((Character c) {
+        return c.sprite == sprite;
+      }, orElse: () { /*Do nothing */ });
+      playerText.setText("${selected.name}\n${selected.hpCurrent}/${selected.hpMax}");
+      window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y})");
+      //Enable all attack buttons for those attacks which the character has charges.
+      attackButtons.forEach((AttackType type, Sprite sprite) {
+        if (selected.hasCharge(type)) {
+          sprite.inputEnabled = true;
+        } else {
+          sprite.inputEnabled = false;
+          print("No charges of type ${type.value} remaining..");
+        };
+      });
+      chargeDisplays.forEach((AttackType att, Text text){
+        text.setText(selected.attackCharges[att]);
+      });
+    } else if (selected.hasMoved && selected.tired == false && sprite != selected.sprite) {
+      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+      Text info = game.add
+        .text(100,
+              200,
+              'The character must attack or \'wait\' before selecting another',
+              style);
+      //Remove the text from the screen after 2 seconds.
+      Timer t = game.time.create();
+      t.add(2000, () => info.destroy());
+      t.start();
+      
+    }
   }
   
   void onEnemyClicked(Sprite sprite, Pointer p)
@@ -294,7 +308,8 @@ class MapRenderState extends State
   
   void listenerTiles(Sprite sprite, Pointer p)
   {
-    if (selected != null && selected.hasMoved == false) { //Avoid crash, and needless computations, if no character selected
+    //Avoid crash, and needless computations, if no character selected
+    if (selected != null && selected.hasMoved == false) {
       //bool to avoid some needless iterations, i.e. once the right tile is found
       bool shouldEnd = false;
       for (int i = 0; i < map.height; i++) {
