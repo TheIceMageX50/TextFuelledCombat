@@ -51,10 +51,10 @@ class MapRenderState extends State
   Text playerText, enemyText;
   AttackType selectedPlayerAtk;
   final String placeholderText = '----\n--/--';
+  BitmapData selectorTexture;
   Sprite hpBar, tileSelector;
   int turnVal = 0; //0 is player's turn, 1 is enemy's turn.
   int selectedTileX = -1, selectedTileY = -1;
-  BitmapData tempBD;
   
   set turn(int val)
   {
@@ -106,6 +106,9 @@ class MapRenderState extends State
     game.load.image('void', '$assetPath/void.png');
     game.load.image('water', '$assetPath/water.png');
     game.load.image('wood', '$assetPath/wood_tile.png');
+    //create tileSelector texture
+    selectorTexture = game.make.bitmapData(TILE_DIM, TILE_DIM);
+    selectorTexture.fill(255, 0, 0,0.5);
     //sounds and music
     game.load.audio('sword', '$assetPath/sword.ogg', true);
     game.load.audio('waterSound', '$assetPath/waterEdit.ogg', true);
@@ -232,11 +235,6 @@ class MapRenderState extends State
     chargeDisplays[AttackType.FIRE] = game.add.text(330, 545, '--', style2);
     chargeDisplays[AttackType.AIR] = game.add.text(440, 545, '--', style2);
     chargeDisplays[AttackType.EARTH] = game.add.text(550, 545, '--', style2);
-    
-    BitmapData foo = game.make.bitmapData(TILE_DIM, TILE_DIM);
-    foo.fill(255, 0, 0,0.5);
-    tempBD = foo;
-    game.add.sprite(700, 400, foo);
   }
   
   void onPlayerClicked(Sprite sprite, Pointer p)
@@ -325,20 +323,18 @@ class MapRenderState extends State
             print("Clicked on ($i,$j)");
             if (selectedTileX == -1 && selectedTileY == -1) {
               //Visually "select" the tile
-              tileSelector = game.add.sprite(sprite.position.x, sprite.position.y, tempBD);
+              tileSelector = game.add.sprite(sprite.position.x, sprite.position.y, selectorTexture);
               selectedTileX = i;
               selectedTileY = j;
             } else if (i == selectedTileX && j == selectedTileY) {
-              //window.alert('Trying to move');
               tileSelector.destroy();
               selected.moveToFix(i, j, map, game, finder: finder);
               selectedTileX = -1;
               selectedTileY = -1;
             } else {
-              //window.alert('Trying to select a new tile');
               //Visually "deselect" the last tile and "select" the new one
               tileSelector.destroy();
-              tileSelector = game.add.sprite(sprite.position.x, sprite.position.y, tempBD);
+              tileSelector = game.add.sprite(sprite.position.x, sprite.position.y, selectorTexture);
               selectedTileX = i;
               selectedTileY = j;
             }
