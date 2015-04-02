@@ -20,27 +20,19 @@ class Tfc
     map = new GameMap(10, 12);
     Game game = new Game(800, 600, AUTO, 'canvasDiv');
     game.stage.setBackgroundColor(0xADD8E6);
-    State state, state2; 
+    State state, state2, state3; 
+    state3 = new TitleState('assets');
     state = new FileWaitState(map);
     game.state.add('wait', state);
-    game.state.start('wait');
+    game.state.add('titlestate', state3);
+    //game.state.start('wait');
+    game.state.start('titlestate');
     
     state2 = new MapRenderState(map, 'assets');
     game.state.add('maprender', state2);
   }
-  
-  void _addTile(int i, int j)
-  {
-    bool isEven = i % 2 == 0;
-    switch (isEven) {
-      case true: map.addTile(TileType.WOOD_TILE, i, j);
-      break;
-      case false: map.addTile(TileType.VOID, i, j);
-    }
-  }
 }
 
-//Currently this is a state for testing rendering stuff
 class MapRenderState extends State
 {
   GameMap map;
@@ -565,5 +557,28 @@ class FileWaitState extends State
   init([args])
   {
     ie  = querySelector('#test');
+  }
+}
+
+class TitleState extends State
+{
+  String assetPath;
+  
+  TitleState(String assetPath)
+  {
+    this.assetPath = assetPath;
+  }
+  
+  preload()
+  {
+    game.load.image('title', '$assetPath/title.png');
+  }
+  
+  create()
+  {
+    game.add.sprite(0, 0, 'title');
+    Timer t = game.time.create();
+    t.add(3000, () => game.state.start('wait'));
+    t.start();
   }
 }
