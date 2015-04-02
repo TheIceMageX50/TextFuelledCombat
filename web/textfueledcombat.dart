@@ -274,10 +274,10 @@ class MapRenderState extends State
     if (selected != null) {
       try {
         if (selectedPlayerAtk != null) {
-          playAttackSound(selectedPlayerAtk);
           selected..attack(selectedPlayerAtk, target)
             ..tired = true
             ..sprite.inputEnabled = false;
+          playAttackSound(selectedPlayerAtk);
           selectedPlayerAtk = null;
           selected = null;
           enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
@@ -346,6 +346,7 @@ class MapRenderState extends State
     //TODO Add code to have some kind of confirmation dialogue
     if (selected != null) {
       selected.tired = true;
+      selected = null;
       bool allTired = map.playerTeam.every((Character player) {
         return player.tired;
       });
