@@ -456,6 +456,7 @@ class MapRenderState extends State
           print('Enemy is attacking!');
           chosenType = _pickEnemyAttackType(enemy, targetPlayer);
           enemy.attack(chosenType, targetPlayer);
+          playAttackSound(chosenType);
           //update after dealing damage
           redrawHpBar(game, targetPlayer);
           playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
@@ -582,11 +583,14 @@ class TitleState extends State
   preload()
   {
     game.load.image('title', '$assetPath/title.png');
+    game.load.audio('mainTheme', '$assetPath/broken_reality.ogg');
   }
   
   create()
   {
     game.add.sprite(0, 0, 'title');
+    game.add.audio('mainTheme', 1.0, true)
+    .play('', 0, 1.0, true);
     Timer t = game.time.create();
     t.add(3000, () => game.state.start('wait'));
     t.start();
