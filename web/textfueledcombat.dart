@@ -93,7 +93,7 @@ class MapRenderState extends State
     game.load.image('playerPortrait', '$assetPath/roshan_portrait.png');
     //tile sprites
     game.load.image('dirt', '$assetPath/dirt.png');
-    game.load.image('dryland', '$assetPath/wood_ph.png');
+    game.load.image('dryland', '$assetPath/dry_land.png');
     game.load.image('grass', '$assetPath/grass.png');
     game.load.image('lava', '$assetPath/lava.png');
     game.load.image('void', '$assetPath/void.png');
