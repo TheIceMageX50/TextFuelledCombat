@@ -133,7 +133,7 @@ class Character implements Mover
   
   bool isWeakTo(AttackType type) => _weaknesses.any((AttackType atkType) => atkType == type);
   
-  void moveToFix(int x, int y, GameMap map, Game game, {Pathfinder finder, Path precomputed})
+  Future<bool> moveTo(int x, int y, GameMap map, Game game, {Pathfinder finder, Path precomputed})
   {
     if (y >= map.width || x >= map.height || x < 0 || y < 0) {
       //out of bounds => error
@@ -161,18 +161,28 @@ class Character implements Mover
         //  }
         //  print(temp);
         //}
-        return;
+        return null;
       }
       print("Printing path steps...");
       for (int i = 0; i < path.length; i++) {
         print("(${path._steps[i].x},${path._steps[i].y})");
       }
-      print("Path End");    
-      Tween tween = game.add.tween(_sprite);
+      print("Path End");
+      Completer comp = new Completer();
+      List<Tween> moveTweens = new List<Tween>();
       for (int i = 0; i < path.length - 1; i++) {
         Point p1 = _gridToWorld(path._steps[i+1]);
-        tween.to({'x' : p1.x, 'y' : p1.y}, 600, Easing.Quadratic.InOut, true);
-      }      
+        moveTweens.add(
+          game.add.tween(_sprite)
+            .to({'x' : p1.x, 'y' : p1.y}, 600, Easing.Quadratic.InOut));
+      }
+      //"Chain" the tweens via onComplete
+      for (int i = 0; i < moveTweens.length - 1; i++) {
+        moveTweens[i].onComplete.addOnce((_) => moveTweens[i+ 1].start());
+      }
+      moveTweens.last.onComplete.addOnce((_) => comp.complete(true));
+      //start the first tween step
+      moveTweens[0].start();
       //unit has moved, blank its previous location in units array
       map._units[_pos.x][_pos.y] = "";
       //set new location
@@ -180,6 +190,9 @@ class Character implements Mover
       _pos.x = x;
       _pos.y = y;
       _hasMoved = true;
+      
+      //Don't leave this function until the tweening is done.
+      return comp.future;
     }
   }
   

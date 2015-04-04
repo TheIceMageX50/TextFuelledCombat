@@ -1,5 +1,6 @@
 import 'lib/tfc_dart.dart';
 import 'package:play_phaser/phaser.dart';
+import 'dart:async';
 import 'dart:html';
 
 Pathfinder finder;
@@ -260,7 +261,6 @@ class MapRenderState extends State
       Timer t = game.time.create();
       t.add(2000, () => info.destroy());
       t.start();
-      
     }
   }
   
@@ -320,7 +320,7 @@ class MapRenderState extends State
               selectedTileY = j;
             } else if (i == selectedTileX && j == selectedTileY) {
               tileSelector.destroy();
-              selected.moveToFix(i, j, map, game, finder: finder);
+              selected.moveTo(i, j, map, game, finder: finder);
               selectedTileX = -1;
               selectedTileY = -1;
             } else {
@@ -404,7 +404,7 @@ class MapRenderState extends State
 
   void playEnemyTurn()
   {
-    map.enemyTeam.forEach((Character enemy) {
+    Future.forEach(map.enemyTeam,(Character enemy) {
       //TODO First and foremost need to check if a player char is already adjacent.
       //First, figure out what player char is closest.
       //Simple approach of assuming first is closest then testing the rest
@@ -426,38 +426,47 @@ class MapRenderState extends State
       playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
       //At this point the closest target has been found, although they may be too far away
       //to hit this turn.
+      Future fut;
       if (manhattanDistance != 1) {
         //Not adjacent to the target player, must find a path to get closer.
         Path path = finder.findPath(enemy, enemy.pos.x, enemy.pos.y, targetPlayer.pos.x, targetPlayer.pos.y);
-        if (path != null) path.removeLast();
-        if (path.length - 1 <= enemy.mobility) {
-          Node n = path.getStep(path.length - 1);
-          enemy.moveToFix(n.x, n.y, map, game, precomputed: path);
-        } else {
-          int iter;
-          for (iter = 0; iter < path.length; iter++) {
-            if (path.getStep(iter).cost.toInt() > enemy.mobility) break;
+        if (path != null) {
+          path.removeLast();
+          while (path.length > 0 && map.getUnitAt(path.getStep(path.length - 1).x, path.getStep(path.length - 1).y) != '') {
+            print('Unit at dest: ${map.getUnitAt(path.getStep(path.length - 1).x, path.getStep(path.length - 1).y)}');
+            path.removeLast();
           }
-          path.removeFrom(iter);
-          Node n = path.getStep(path.length - 1);
-          enemy.moveToFix(n.x, n.y, map, game, precomputed: path);
+          if (path.length - 1 <= enemy.mobility) {
+            Node n = path.getStep(path.length - 1);
+            fut = enemy.moveTo(n.x, n.y, map, game, precomputed: path);
+          } else {
+            int iter;
+            for (iter = 0; iter < path.length; iter++) {
+              if (path.getStep(iter).cost.toInt() > enemy.mobility) break;
+            }
+            path.removeFrom(iter);
+            Node n = path.getStep(path.length - 1);
+            fut = enemy.moveTo(n.x, n.y, map, game, precomputed: path);
+          }
         }
       }
       
-      try {
-        print('Enemy is attacking!');
-        chosenType = _pickEnemyAttackType(enemy, targetPlayer);
-        enemy.attack(chosenType, targetPlayer);
-        //update after dealing damage
-        redrawHpBar(game, targetPlayer);
-        playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
-        if (targetPlayer.hpCurrent <= 0) map.playerTeam.remove(targetPlayer);
-      } on AttackRangeException catch (e) {
-        print("Enemy attack failed! range issue");
-        //Enemy is too far away from player to attack, that's ok.
-      } finally {
-        enemy.tired = true;
-      }
+      return fut.then((_) {
+        try {
+          print('Enemy is attacking!');
+          chosenType = _pickEnemyAttackType(enemy, targetPlayer);
+          enemy.attack(chosenType, targetPlayer);
+          //update after dealing damage
+          redrawHpBar(game, targetPlayer);
+          playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
+          if (targetPlayer.hpCurrent <= 0) map.playerTeam.remove(targetPlayer);
+        } on AttackRangeException catch (e) {
+          print("Enemy attack failed! range issue");
+          //Enemy is too far away from player to attack, that's ok.
+        } finally {
+          enemy.tired = true;
+        }
+      });
     });
     //All enemies will have moved and/or attacked now, end their turn!
     turn = 0;

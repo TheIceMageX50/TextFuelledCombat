@@ -96,6 +96,11 @@ class GameMap implements TileBasedMap
     _units[row][col] = unit;  
   }
   
+  String getUnitAt(int row, int col)
+  {
+    return _units[row][col];
+  }
+  
   testFindPath(Mover mover)
   {
     Path path = finder.findPath(mover, 0, 0, 0, 8,7.0);
@@ -252,6 +257,7 @@ class GameMap implements TileBasedMap
       return !_traversableTypes.contains(_grid[row][col]) || enemyIsAtDest;
     }
   }
+  
   double getCost(Mover mover, int startRow, int startCol, int targetRow, int targetCol)
   {
     //Cover our bases; this should only be used to test moving from one tile to another
