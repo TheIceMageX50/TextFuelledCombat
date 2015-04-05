@@ -1,9 +1,9 @@
 # Don’t commit the following files and directories created by pub and dart2js
 #packages/
-packages/game_loop/
-packages/p2/
-packages/play_pixi/
-packages/play_phaser/
+#packages/game_loop/
+#packages/p2/
+#packages/play_pixi/
+#packages/play_phaser/
 web/lib/packages/
 web/packages/
 build/
