@@ -2,5 +2,4 @@ name: TextFueledCombat
 description: A sample web application
 dependencies:
   browser: any
-  game_loop: any
   play_phaser: any

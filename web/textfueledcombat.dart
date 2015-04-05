@@ -1,7 +1,7 @@
 import 'lib/tfc_dart.dart';
 import 'package:play_phaser/phaser.dart';
-import 'dart:async';
-import 'dart:html';
+import 'dart:async' hide Timer;
+import 'dart:html' hide Text, Node;
 
 Pathfinder finder;
 
