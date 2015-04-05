@@ -108,6 +108,7 @@ class MapRenderState extends State
     game.load.audio('air', '$assetPath/air_attack.ogg', true);
     game.load.audio('fire', '$assetPath/fire_attack.ogg', true);
     game.load.audio('earth', '$assetPath/earth_attack.ogg', true);
+    game.load.audio('mace', '$assetPath/mace.ogg');
   } 
   
   create()
@@ -343,8 +344,9 @@ class MapRenderState extends State
   
   void onWaitClicked(Sprite sprite, Pointer p)
   {
-    //TODO Add code to have some kind of confirmation dialogue
-    if (selected != null) {
+    bool confirmResult = window.confirm('Are you sure? Having your character wait means ' 
+        + 'they will not be able to take any further actions this turn.');
+    if (confirmResult && selected != null) {
       selected.tired = true;
       selected = null;
       bool allTired = map.playerTeam.every((Character player) {
@@ -405,7 +407,6 @@ class MapRenderState extends State
   void playEnemyTurn()
   {
     Future.forEach(map.enemyTeam,(Character enemy) {
-      //TODO First and foremost need to check if a player char is already adjacent.
       //First, figure out what player char is closest.
       //Simple approach of assuming first is closest then testing the rest
       AttackType chosenType;
@@ -449,6 +450,10 @@ class MapRenderState extends State
             fut = enemy.moveTo(n.x, n.y, map, game, precomputed: path);
           }
         }
+      } else {
+        //A future must be assigned to fut to execute the .then() below. The value doesn't
+        //matter.
+        fut = new Future.value(0);
       }
       
       return fut.then((_) {
@@ -456,11 +461,13 @@ class MapRenderState extends State
           print('Enemy is attacking!');
           chosenType = _pickEnemyAttackType(enemy, targetPlayer);
           enemy.attack(chosenType, targetPlayer);
-          playAttackSound(chosenType);
-          //update after dealing damage
-          redrawHpBar(game, targetPlayer);
-          playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
-          if (targetPlayer.hpCurrent <= 0) map.playerTeam.remove(targetPlayer);
+          return new Future (() {
+            redrawHpBar(game, targetPlayer);
+            playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
+            if (targetPlayer.hpCurrent <= 0) map.playerTeam.remove(targetPlayer);
+            return playAttackSound(chosenType);
+            //update after dealing damage
+          });
         } on AttackRangeException catch (e) {
           print("Enemy attack failed! range issue");
           //Enemy is too far away from player to attack, that's ok.
@@ -485,7 +492,7 @@ class MapRenderState extends State
       //charges for, select the one which has the most charges remaining.
       return weaknessCharges.keys
         .reduce((AttackType t1, AttackType t2) {
-        return weaknessCharges[t1] >= weaknessCharges[t2] ? weaknessCharges[t1] : weaknessCharges[t2];
+        return weaknessCharges[t1] >= weaknessCharges[t2] ? t1 : t2;
       });
     } else {
       //Unlucky (for the enemy!) roll...select the most charged type the target is
@@ -510,30 +517,36 @@ class MapRenderState extends State
     }
   }
   
-  void playAttackSound(AttackType type)
+  Future<bool> playAttackSound(AttackType type)
   {
+    Sound s;
+    Completer comp = new Completer();
+    
     switch (type) {
-      case AttackType.SWORD: game.sound.play('sword');
+      case AttackType.SWORD: s = game.add.sound('sword', 10.0);
       break;
-      case AttackType.MACE: game.sound.play('mace');
+      case AttackType.MACE: s = game.add.sound('mace', 10.0);
       break;
-      case AttackType.WATER: game.sound.play('waterSound');
+      case AttackType.WATER: s = game.add.sound('waterSound', 10.0);
       break;
-      case AttackType.AIR: game.sound.play('air');
+      case AttackType.AIR: s = game.add.sound('air', 10.0);
       break;
       case AttackType.FIRE: 
         //TODO Sound looping doesn't seem to be working yet, why?
         int loopCount = 0;
-        Sound s = game.add.sound('fire', 1.0, true);
+        s = game.add.sound('fire', 10.0, true);
         s.onLoop.add((Sound s) {
           loopCount++;
           if (loopCount == 3) s.stop(); 
         });
-        s.play();
       break;
-      case AttackType.EARTH: game.sound.play('earth');
+      case AttackType.EARTH: game.add.sound('earth', 10.0);
       break;
     }
+    //s.onStop.addOnce((Sound foo) => comp.complete(true));
+    s.play();
+    comp.complete(true);
+    return comp.future;
   }
 }
 
@@ -589,8 +602,8 @@ class TitleState extends State
   create()
   {
     game.add.sprite(0, 0, 'title');
-    game.add.audio('mainTheme', 1.0, true)
-    .play('', 0, 1.0, true);
+    game.add.audio('mainTheme', 0.5, true)
+    .play('', 0, 0.5, true);
     Timer t = game.time.create();
     t.add(3000, () => game.state.start('wait'));
     t.start();
