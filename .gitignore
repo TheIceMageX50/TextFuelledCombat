@@ -10,7 +10,7 @@ build/
 .pub/
 *.js_
 *.js.deps
-*.js.map
+#*.js.map
 
 # Avoid committing generated JavaScript files
 #*.dart.js
