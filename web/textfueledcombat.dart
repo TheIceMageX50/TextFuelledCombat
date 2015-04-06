@@ -445,6 +445,10 @@ class MapRenderState extends State
             fut = enemy.moveTo(n.x, n.y, map, game, precomputed: path);
           }
         }
+      } else {
+        //A future must be assigned to fut to execute the .then() below. The value doesn't
+        //matter.
+        fut = new Future.value(0);
       }
       
       return fut.then((_) {
@@ -463,9 +467,10 @@ class MapRenderState extends State
           enemy.tired = true;
         }
       });
+    }).then((_) {
+      //All enemies will have moved and/or attacked now, end their turn!
+      turn = 0;
     });
-    //All enemies will have moved and/or attacked now, end their turn!
-    turn = 0;
   }
   
   AttackType _pickEnemyAttackType(Character enemy, Character target)
@@ -586,9 +591,6 @@ class TitleState extends State
     game.add.sprite(0, 0, 'title');
     game.add.audio('mainTheme', 1.0, true)
     .play('', 0, 1.0, true);
-    //Timer t = game.time.create();
-    ///t.add(3000, () => game.state.start('wait'));
-    //t.start();
     spaceBar = game.input.keyboard.addKey(Keyboard.SPACEBAR);
   }
   
