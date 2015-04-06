@@ -152,15 +152,7 @@ class Character implements Mover
       }
       if (path == null) {
         TileType tt = map.whatTile(x, y);
-        window.alert("Path blocked! At ($x,$y) there is a tile of type ${tt.value}");
-        //for (int a = 0; a < map.height; a++) {
-        //  var temp = "";
-        //  for (int b = 0; b < map.width; b++) {
-        //    bool boolL = map.blocked(null, a, b);
-        //    temp += boolL.toString() + " ";
-        //  }
-        //  print(temp);
-        //}
+        //window.alert("Path blocked! At ($x,$y) there is a tile of type ${tt.value}");
         return null;
       }
       print("Printing path steps...");

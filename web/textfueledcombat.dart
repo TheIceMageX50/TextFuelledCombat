@@ -7,7 +7,6 @@ Pathfinder finder;
 
 void main()
 {
-
   new Tfc();
   //TODO Title screen and/or startup sequence?
 }
@@ -18,7 +17,7 @@ class Tfc
   
   Tfc()
   {
-    map = new GameMap(10, 12);
+    map = new GameMap(12, 14);
     Game game = new Game(800, 600, AUTO, 'canvasDiv');
     game.stage.setBackgroundColor(0xADD8E6);
     State state, state2, state3; 
@@ -41,7 +40,6 @@ class MapRenderState extends State
   Map<AttackType, Sprite> attackButtons;
   Map<AttackType, Text> chargeDisplays;
   Character selected;
-  Text playerText, enemyText;
   AttackType selectedPlayerAtk;
   final String placeholderText = '----\n--/--';
   BitmapData selectorTexture;
@@ -56,8 +54,6 @@ class MapRenderState extends State
     } else if (val != turnVal) {
       turnVal = val; 
       if (val == 0) {
-        //Reset playerText
-        playerText.setText(placeholderText);
         map.playerTeam.forEach((Character player) {
           player.tired = false;
           player.hasMoved = false;
@@ -172,11 +168,6 @@ class MapRenderState extends State
       map.enemyTeam[i].hpBar = createHpBar(game, world.width - 104, 64 + 68 * i);
     }
     
-    //Setup displays for enemy and player HP.
-    TextStyle style = new TextStyle(fill:'#FFFFFF' , font:'10px Arial' , align:'left');
-    playerText = game.add.text(500, 400, placeholderText, style);
-    enemyText = game.add.text(500, 420, placeholderText, style);
-    
     //Add buttons to the world
     waitButton = addGameButton(game, 0, 438, 'button', 'Wait', onWaitClicked);
     attackButtons[AttackType.SWORD] = addGameButton(
@@ -236,7 +227,6 @@ class MapRenderState extends State
       selected = map.playerTeam.firstWhere((Character c) {
         return c.sprite == sprite;
       }, orElse: () { /*Do nothing */ });
-      playerText.setText("${selected.name}\n${selected.hpCurrent}/${selected.hpMax}");
       window.alert("Clicked! Unit ${selected.name} is now selected! pos (${sprite.position.x},${sprite.position.y})");
       //Enable all attack buttons for those attacks which the character has charges.
       attackButtons.forEach((AttackType type, Sprite sprite) {
@@ -269,7 +259,6 @@ class MapRenderState extends State
     Character target = map.enemyTeam.firstWhere((Character c) {
       return sprite == c.sprite;
     });
-    enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
     
     if (selected != null) {
       try {
@@ -280,12 +269,10 @@ class MapRenderState extends State
           playAttackSound(selectedPlayerAtk);
           selectedPlayerAtk = null;
           selected = null;
-          enemyText.setText("${target.name}\n${target.hpCurrent}/${target.hpMax}");
           redrawHpBar(game, target);
         
           if (target.hpCurrent <= 0) {
             map.enemyTeam.remove(target);
-            enemyText.setText(placeholderText);
           }
         } else {
           //TODO Error feedback to UI e.g. "You must select an attack type."
@@ -320,7 +307,10 @@ class MapRenderState extends State
               selectedTileY = j;
             } else if (i == selectedTileX && j == selectedTileY) {
               tileSelector.destroy();
-              selected.moveTo(i, j, map, game, finder: finder);
+              //Make sure there isn't another player char there already..
+              if (map.getUnitAt(selectedTileX, selectedTileY) == '') {
+                selected.moveTo(i, j, map, game, finder: finder);
+              }
               selectedTileX = -1;
               selectedTileY = -1;
             } else {
@@ -422,8 +412,6 @@ class MapRenderState extends State
           targetPlayer = map.playerTeam[i];
         }
       }
-      enemyText.setText("${enemy.name}\n${enemy.hpCurrent}/${enemy.hpMax}");
-      playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
       //At this point the closest target has been found, although they may be too far away
       //to hit this turn.
       Future fut;
@@ -459,7 +447,6 @@ class MapRenderState extends State
           playAttackSound(chosenType);
           //update after dealing damage
           redrawHpBar(game, targetPlayer);
-          playerText.setText("${targetPlayer.name}\n${targetPlayer.hpCurrent}/${targetPlayer.hpMax}");
           if (targetPlayer.hpCurrent <= 0) map.playerTeam.remove(targetPlayer);
         } on AttackRangeException catch (e) {
           print("Enemy attack failed! range issue");
@@ -549,8 +536,8 @@ class FileWaitState extends State
   
   create()
   {
-    TextStyle style = new TextStyle(font: "45px Arial", fill: "#ffffff", align: "center");
-    game.add.text(game.world.centerX, game.world.centerY, 'Waiting for text file...', style);
+    TextStyle style = new TextStyle(font: "45px Arial", fill: "#ffffff", align: "left");
+    game.add.text(game.world.centerX - 200, game.world.centerY, 'Waiting for text file...', style);
   }
   
   update()
@@ -558,7 +545,6 @@ class FileWaitState extends State
     if (ie.files.isNotEmpty) {
       map.generateMap(ie.files[0])
       .then((_) {
-        //TODO Review: Is map.width a good max search distance? 
         finder = new AStarPathFinder(map, 50);
         game.state.start('maprender');
       });
@@ -574,6 +560,7 @@ class FileWaitState extends State
 class TitleState extends State
 {
   String assetPath;
+  Key spaceBar;
   
   TitleState(String assetPath)
   {
@@ -591,8 +578,17 @@ class TitleState extends State
     game.add.sprite(0, 0, 'title');
     game.add.audio('mainTheme', 1.0, true)
     .play('', 0, 1.0, true);
-    Timer t = game.time.create();
-    t.add(3000, () => game.state.start('wait'));
-    t.start();
+    //Timer t = game.time.create();
+    ///t.add(3000, () => game.state.start('wait'));
+    //t.start();
+    spaceBar = game.input.keyboard.addKey(Keyboard.SPACEBAR);
+  }
+  
+  update()
+  {
+    //Leave title screen once space is pressed.
+    if (spaceBar.isDown) {
+      game.state.start('wait');
+    }
   }
 }
