@@ -104,6 +104,7 @@ class MapRenderState extends State
     game.load.audio('air', '$assetPath/air_attack.ogg', true);
     game.load.audio('fire', '$assetPath/fire_attack.ogg', true);
     game.load.audio('earth', '$assetPath/earth_attack.ogg', true);
+    game.load.audio('mace', '$assetPath/mace.ogg');
   } 
   
   create()
@@ -267,6 +268,7 @@ class MapRenderState extends State
             ..tired = true
             ..sprite.inputEnabled = false;
           playAttackSound(selectedPlayerAtk);
+          chargeDisplays[selectedPlayerAtk].setText(selected.attackCharges[selectedPlayerAtk]);
           selectedPlayerAtk = null;
           selected = null;
           redrawHpBar(game, target);
@@ -275,9 +277,15 @@ class MapRenderState extends State
             map.enemyTeam.remove(target);
           }
         } else {
-          //TODO Error feedback to UI e.g. "You must select an attack type."
-          //Temporary impl; alert message
-          window.alert('You must select an attack type first.');
+          TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+          Text info = game.add
+            .text(100,
+                  200,
+                  'You must select an attack type first.',
+                  style);
+          Timer t = game.time.create();
+          t.add(2000, () => info.destroy());
+          t.start();
         }
       } on AttackRangeException catch (e) {
         //Enemy is out of range so attack could not be performed.
