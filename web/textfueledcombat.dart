@@ -44,40 +44,65 @@ class MapRenderState extends State
   final String placeholderText = '----\n--/--';
   BitmapData selectorTexture;
   Sprite hpBar, tileSelector;
-  int turnVal = 0; //0 is player's turn, 1 is enemy's turn.
+  int turnVal = -1; //0 is player's turn, 1 is enemy's turn.
   int selectedTileX = -1, selectedTileY = -1;
-  
+  //Incremented and displayed each turn
+  int turnCount = 0;
+ 
   set turn(int val)
   {
     if (val > 1) {
       //TODO error, throw?
     } else if (val != turnVal) {
-      turnVal = val; 
+      turnVal = val;
+      BitmapData bmp = game.make.bitmapData(world.width, world.height);
+      bmp.fill(0, 0, 0, 0.5);
+      Timer timer = game.time.create();
+      Sprite temp;
+      Text text;
+      TextStyle style = new TextStyle(fill:'#ffffff' , font:'25px Arial' , align:'left');
+     
       if (val == 0) {
         map.playerTeam.forEach((Character player) {
           player.tired = false;
           player.hasMoved = false;
           player.sprite.inputEnabled = true;
         });
+        turnCount++;
+        temp = game.add.sprite(0, 0, bmp);
+        text = game.add.text(150, 200, 'Turn $turnCount: Player\'s Move', style);
+        timer.add(2000, () {
+          text.destroy();
+          temp.destroy();
+        });
+        timer.start();
       } else {
         map.enemyTeam.forEach((Character enemy) {
           //TODO Remove this since it's effectively obsolete? Since as it stands
           //enemies can't "cheat" by moving more than they should.
           enemy.tired = false;
         });
-        playEnemyTurn();
+        turnCount++;
+        temp = game.add.sprite(0, 0, bmp);
+        text = game.add.text(150, 200, 'Turn $turnCount: Enemy\'s Move', style);
+        timer.add(2000, () {
+          text.destroy();
+          temp.destroy();
+          playEnemyTurn();
+        });
+        timer.start();
       }
     }
   }
-  
+ 
   MapRenderState(GameMap map, String assetPath)
   {
     this.map = map;
-    this.assetPath = assetPath; 
+    this.assetPath = assetPath;
     attackButtons = new Map<AttackType, Sprite>();
     chargeDisplays = new Map<AttackType, Text>();
   }
-  
+ 
   preload()
   {
     game.load.image('button', '$assetPath/button_blue.png');
@@ -105,8 +130,8 @@ class MapRenderState extends State
     game.load.audio('fire', '$assetPath/fire_attack.ogg', true);
     game.load.audio('earth', '$assetPath/earth_attack.ogg', true);
     game.load.audio('mace', '$assetPath/mace.ogg');
-  } 
-  
+  }
+ 
   create()
   {
     //Hide input element as it is no longer needed since text file has already
@@ -115,7 +140,7 @@ class MapRenderState extends State
     ie.style.display = 'none';
     final int mapOffsetX = 96, mapOffsetY = 32;
     Sprite temp, waitButton;
-    
+   
     for (int i = 0; i < map.height; i++) {
       for (int j = 0; j < map.width; j++) {
         switch(map.whatTile(i, j)) {
@@ -168,7 +193,7 @@ class MapRenderState extends State
       game.add.sprite(world.width - 104, 20 + 68 * i, getPortraitKey(map.enemyTeam[i].type));
       map.enemyTeam[i].hpBar = createHpBar(game, world.width - 104, 64 + 68 * i);
     }
-    
+   
     //Add buttons to the world
     waitButton = addGameButton(game, 0, 438, 'button', 'Wait', onWaitClicked);
     attackButtons[AttackType.SWORD] = addGameButton(
@@ -220,8 +245,11 @@ class MapRenderState extends State
     chargeDisplays[AttackType.FIRE] = game.add.text(330, 545, '--', style2);
     chargeDisplays[AttackType.AIR] = game.add.text(440, 545, '--', style2);
     chargeDisplays[AttackType.EARTH] = game.add.text(550, 545, '--', style2);
+   
+    //use turn setter to display "Turn 1" overlay
+    turn = 0;
   }
-  
+ 
   void onPlayerClicked(Sprite sprite, Pointer p)
   {
     if (selected == null || selected.tired) {
@@ -254,13 +282,13 @@ class MapRenderState extends State
       t.start();
     }
   }
-  
+ 
   void onEnemyClicked(Sprite sprite, Pointer p)
   {
     Character target = map.enemyTeam.firstWhere((Character c) {
       return sprite == c.sprite;
     });
-    
+   
     if (selected != null) {
       try {
         if (selectedPlayerAtk != null) {
@@ -272,7 +300,7 @@ class MapRenderState extends State
           selectedPlayerAtk = null;
           selected = null;
           redrawHpBar(game, target);
-        
+       
           if (target.hpCurrent <= 0) {
             map.enemyTeam.remove(target);
           }
@@ -297,7 +325,7 @@ class MapRenderState extends State
       if (allTired) turn = 1;
     }
   }
-  
+ 
   void listenerTiles(Sprite sprite, Pointer p)
   {
     //Avoid crash, and needless computations, if no character selected
@@ -338,7 +366,7 @@ class MapRenderState extends State
       }
     }
   }
-  
+ 
   void onWaitClicked(Sprite sprite, Pointer p)
   {
     //TODO Add code to have some kind of confirmation dialogue
@@ -351,7 +379,7 @@ class MapRenderState extends State
       if (allTired) turn = 1;
     }
   }
-  
+ 
   void onSwordButtonClicked(Sprite sprite, Pointer p)
   {
     if (selected != null && selected.hasCharge(AttackType.SWORD)) {
@@ -359,7 +387,7 @@ class MapRenderState extends State
       selectedPlayerAtk = AttackType.SWORD;
     }
   }
-  
+ 
   void onMaceButtonClicked(Sprite sprite, Pointer p)
   {
     if (selected != null && selected.hasCharge(AttackType.MACE)) {
@@ -367,7 +395,7 @@ class MapRenderState extends State
       selectedPlayerAtk = AttackType.MACE;
     }
   }
-  
+ 
   void onWaterButtonClicked(Sprite sprite, Pointer p)
   {
     if (selected != null && selected.hasCharge(AttackType.WATER)) {
@@ -375,7 +403,7 @@ class MapRenderState extends State
       selectedPlayerAtk = AttackType.WATER;
     }
   }
-  
+ 
   void onFireButtonClicked(Sprite sprite, Pointer p)
   {
     if (selected != null && selected.hasCharge(AttackType.FIRE)) {
@@ -383,7 +411,7 @@ class MapRenderState extends State
       selectedPlayerAtk = AttackType.FIRE;
     }
   }
-  
+ 
   void onEarthButtonClicked(Sprite sprite, Pointer p)
   {
     if (selected != null && selected.hasCharge(AttackType.EARTH)) {
@@ -391,7 +419,7 @@ class MapRenderState extends State
       selectedPlayerAtk = AttackType.EARTH;
     }
   }
-  
+ 
   void onAirButtonClicked(Sprite sprite, Pointer p)
   {
     if (selected != null && selected.hasCharge(AttackType.AIR)) {
@@ -399,7 +427,7 @@ class MapRenderState extends State
       selectedPlayerAtk = AttackType.AIR;
     }
   }
-
+ 
   void playEnemyTurn()
   {
     Future.forEach(map.enemyTeam,(Character enemy) {
@@ -450,7 +478,7 @@ class MapRenderState extends State
         //matter.
         fut = new Future.value(0);
       }
-      
+     
       return fut.then((_) {
         try {
           print('Enemy is attacking!');
@@ -472,12 +500,12 @@ class MapRenderState extends State
       turn = 0;
     });
   }
-  
+ 
   AttackType _pickEnemyAttackType(Character enemy, Character target)
   {
     int rand = RNG.nextInt(5);
     if (rand < 3) {
-      Map<AttackType, int> weaknessCharges = new Map<AttackType, int>(); 
+      Map<AttackType, int> weaknessCharges = new Map<AttackType, int>();
       enemy.attackCharges.forEach((AttackType t, int charges) {
         if (target.isWeakTo(t)) weaknessCharges[t] = charges;
       });
@@ -500,7 +528,7 @@ class MapRenderState extends State
       });
     }
   }
-  
+ 
   void _assignAttackCharges(Character c)
   {
     int tempVal;
@@ -509,7 +537,7 @@ class MapRenderState extends State
       c.addCharge(tempVal);
     }
   }
-  
+ 
   void playAttackSound(AttackType type)
   {
     switch (type) {
@@ -521,13 +549,13 @@ class MapRenderState extends State
       break;
       case AttackType.AIR: game.sound.play('air');
       break;
-      case AttackType.FIRE: 
+      case AttackType.FIRE:
         //TODO Sound looping doesn't seem to be working yet, why?
         int loopCount = 0;
         Sound s = game.add.sound('fire', 1.0, true);
         s.onLoop.add((Sound s) {
           loopCount++;
-          if (loopCount == 3) s.stop(); 
+          if (loopCount == 3) s.stop();
         });
         s.play();
       break;
