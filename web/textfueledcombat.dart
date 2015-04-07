@@ -578,7 +578,12 @@ class FileWaitState extends State
   create()
   {
     TextStyle style = new TextStyle(font: "45px Arial", fill: "#ffffff", align: "left");
-    game.add.text(game.world.centerX - 200, game.world.centerY, 'Waiting for text file...', style);
+    game.add.text(
+        game.world.centerX - 200,
+        game.world.centerY,
+        'Waiting for text file...\nSubmit one below!',
+        style);
+    ie.style.display = '';
   }
   
   update()
