@@ -2,9 +2,9 @@ library TextFueledCombat;
 
 import 'package:play_phaser/phaser.dart';
 
-import 'dart:async';
+import 'dart:async' hide Timer;
 import 'dart:collection';
-import 'dart:html';
+import 'dart:html' hide Text;
 import 'dart:math';
 //Mirrors import currently not used. *maybe* in the future.
 import 'dart:mirrors';

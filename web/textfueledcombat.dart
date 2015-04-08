@@ -298,6 +298,9 @@ class MapRenderState extends State
     });
    
     if (selected != null) {
+      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+      Text info;
+      Timer t = game.time.create();
       try {
         if (selectedPlayerAtk != null) {
           selected..attack(selectedPlayerAtk, target)
@@ -313,19 +316,25 @@ class MapRenderState extends State
             map.enemyTeam.remove(target);
           }
         } else {
-          TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
-          Text info = game.add
+          info = game.add
             .text(100,
                   200,
                   'You must select an attack type first.',
                   style);
-          Timer t = game.time.create();
           t.add(2000, () => info.destroy());
           t.start();
         }
       } on AttackRangeException catch (e) {
         //Enemy is out of range so attack could not be performed.
         print('Player failed attack! Out of range.');
+        info = game.add.text(
+            100,
+            200,
+            'You must be nondiagonally adjacent to an \nenemy to attack them.',
+            style);
+        t.add(2000, () => info.destroy());
+        t.start();
+        
       }
       bool allTired = map.playerTeam.every((Character player) {
         return player.tired;
@@ -390,13 +399,19 @@ class MapRenderState extends State
  
   void onSwordButtonClicked(Sprite sprite, Pointer p)
   {
+    Timer timer = game.time.create();
+    Text text;
+    TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+    
     if (selected != null && selected.hasCharge(AttackType.SWORD)) {
       print('Player mode - Sword attack!');
       selectedPlayerAtk = AttackType.SWORD;
+      text = game.add.text(150, 200, 'Selected Sword attack!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     } else {
-      Timer timer = game.time.create();
-      Text text;
-      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
       text = game.add.text(150, 200, 'You must select a character to attack!', style);
       timer.add(2000, () {
         text.destroy();
@@ -407,13 +422,19 @@ class MapRenderState extends State
  
   void onMaceButtonClicked(Sprite sprite, Pointer p)
   {
+    Timer timer = game.time.create();
+    Text text;
+    TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+    
     if (selected != null && selected.hasCharge(AttackType.MACE)) {
-      print('Player mode - Mace attack!');
-      selectedPlayerAtk = AttackType.MACE;
+      print('Player mode - Sword attack!');
+      selectedPlayerAtk = AttackType.SWORD;
+      text = game.add.text(150, 200, 'Selected Mace attack!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     } else {
-      Timer timer = game.time.create();
-      Text text;
-      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
       text = game.add.text(150, 200, 'You must select a character to attack!', style);
       timer.add(2000, () {
         text.destroy();
@@ -424,13 +445,19 @@ class MapRenderState extends State
  
   void onWaterButtonClicked(Sprite sprite, Pointer p)
   {
+    Timer timer = game.time.create();
+    Text text;
+    TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+    
     if (selected != null && selected.hasCharge(AttackType.WATER)) {
-      print('Player mode - Water attack!');
-      selectedPlayerAtk = AttackType.WATER;
+      print('Player mode - Sword attack!');
+      selectedPlayerAtk = AttackType.SWORD;
+      text = game.add.text(150, 200, 'Selected Water magic!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     } else {
-      Timer timer = game.time.create();
-      Text text;
-      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
       text = game.add.text(150, 200, 'You must select a character to attack!', style);
       timer.add(2000, () {
         text.destroy();
@@ -441,13 +468,19 @@ class MapRenderState extends State
  
   void onFireButtonClicked(Sprite sprite, Pointer p)
   {
+    Timer timer = game.time.create();
+    Text text;
+    TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+    
     if (selected != null && selected.hasCharge(AttackType.FIRE)) {
-      print('Player mode - Fire attack!');
-      selectedPlayerAtk = AttackType.FIRE;
+      print('Player mode - Sword attack!');
+      selectedPlayerAtk = AttackType.SWORD;
+      text = game.add.text(150, 200, 'Selected Fire magic!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     } else {
-      Timer timer = game.time.create();
-      Text text;
-      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
       text = game.add.text(150, 200, 'You must select a character to attack!', style);
       timer.add(2000, () {
         text.destroy();
@@ -458,13 +491,19 @@ class MapRenderState extends State
  
   void onEarthButtonClicked(Sprite sprite, Pointer p)
   {
+    Timer timer = game.time.create();
+    Text text;
+    TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+    
     if (selected != null && selected.hasCharge(AttackType.EARTH)) {
-      print('Player mode - Earth attack!');
-      selectedPlayerAtk = AttackType.EARTH;
+      print('Player mode - Sword attack!');
+      selectedPlayerAtk = AttackType.SWORD;
+      text = game.add.text(150, 200, 'Selected Earth magic!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     } else {
-      Timer timer = game.time.create();
-      Text text;
-      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
       text = game.add.text(150, 200, 'You must select a character to attack!', style);
       timer.add(2000, () {
         text.destroy();
@@ -475,13 +514,19 @@ class MapRenderState extends State
  
   void onAirButtonClicked(Sprite sprite, Pointer p)
   {
+    Timer timer = game.time.create();
+    Text text;
+    TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+    
     if (selected != null && selected.hasCharge(AttackType.AIR)) {
-      print('Player mode - Air attack!');
-      selectedPlayerAtk = AttackType.AIR;
+      print('Player mode - Sword attack!');
+      selectedPlayerAtk = AttackType.SWORD;
+      text = game.add.text(150, 200, 'Selected Air magic!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     } else {
-      Timer timer = game.time.create();
-      Text text;
-      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
       text = game.add.text(150, 200, 'You must select a character to attack!', style);
       timer.add(2000, () {
         text.destroy();

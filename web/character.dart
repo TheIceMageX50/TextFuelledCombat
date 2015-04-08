@@ -141,6 +141,14 @@ class Character implements Mover
       //If manhattan distance from current pos to target > mobility then the
       //character certainly can't get there
       // =>error
+      Timer timer = game.time.create();
+      Text text;
+      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+      text = game.add.text(150, 200, 'Your character cannot move that far.\n Their mobility is $_mobility', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     } else {
       Path path;
       //Pathfinder should only be used *within* this function iff moving a player char.
