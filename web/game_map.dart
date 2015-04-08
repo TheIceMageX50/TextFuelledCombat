@@ -121,7 +121,6 @@ class GameMap implements TileBasedMap
         List<String> countKeys = fileProcessor._charCountsTile.keys.toList();
         int rand;
         String randKey;
-        String temp;
         for (int i = 0; i < _grid.array.length; i++) {
           temp = '';
           for (int j = 0; j < _grid[0].length; j++) {
@@ -143,12 +142,7 @@ class GameMap implements TileBasedMap
               _grid[i][j] = fileProcessor._charTileMappings[randKey];
               fileProcessor._takeChar(randKey);
             }
-            temp += _grid[i][j].toString() + ' ';
-            if (blocked(null,i,j)) {
-             // print("blocked: ($i,$j)");
-            }
           }
-          //print(temp);
         }
         //Now that the map is set up, initialise the Pathfinder. This cannot be done
         //in the constructor because the map needs to be set up so that the
@@ -270,10 +264,8 @@ class GameMap implements TileBasedMap
       throw('Error: Trying to assess moving to a tile that is not directly adjacent');
     } else {
       //If you get here, it's a valid tile (i.e. directly adjacent) to check!
-      int tileTypeInt = _grid[targetRow][targetCol];
       TileType currType = whatTile(targetRow, targetCol);
       double mc = _tileTypes[currType]._moveCost.toDouble();
-      //print("Tiletype: $tileTypeInt ... move cost: $mc");
       return mc;
     }
   }

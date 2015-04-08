@@ -138,7 +138,7 @@ class MapRenderState extends State
     //been given at this point.
     InputElement ie = querySelector('#test');
     ie.style.display = 'none';
-    final int mapOffsetX = 96, mapOffsetY = 32;
+    final int mapOffsetY = 32;
     Sprite temp, waitButton;
    
     for (int i = 0; i < map.height; i++) {
