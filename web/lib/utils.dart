@@ -76,4 +76,9 @@ void addAtkButtonTooltip(Game game, Sprite button, String tooltip)
   button.events.onInputOut.add((Sprite sprite, Pointer p) {
     tooltipSprite.destroy();
   });
+  
+  //without this tooltip will persist if button is clicked.
+  button.events.onInputDown.add((Sprite sprite, Pointer p) {
+    tooltipSprite.destroy();
+  });
 }

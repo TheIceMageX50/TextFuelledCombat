@@ -393,6 +393,15 @@ class MapRenderState extends State
     if (selected != null && selected.hasCharge(AttackType.SWORD)) {
       print('Player mode - Sword attack!');
       selectedPlayerAtk = AttackType.SWORD;
+    } else {
+      Timer timer = game.time.create();
+      Text text;
+      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+      text = game.add.text(150, 200, 'You must select a character to attack!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     }
   }
  
@@ -401,6 +410,15 @@ class MapRenderState extends State
     if (selected != null && selected.hasCharge(AttackType.MACE)) {
       print('Player mode - Mace attack!');
       selectedPlayerAtk = AttackType.MACE;
+    } else {
+      Timer timer = game.time.create();
+      Text text;
+      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+      text = game.add.text(150, 200, 'You must select a character to attack!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     }
   }
  
@@ -409,6 +427,15 @@ class MapRenderState extends State
     if (selected != null && selected.hasCharge(AttackType.WATER)) {
       print('Player mode - Water attack!');
       selectedPlayerAtk = AttackType.WATER;
+    } else {
+      Timer timer = game.time.create();
+      Text text;
+      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+      text = game.add.text(150, 200, 'You must select a character to attack!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     }
   }
  
@@ -417,6 +444,15 @@ class MapRenderState extends State
     if (selected != null && selected.hasCharge(AttackType.FIRE)) {
       print('Player mode - Fire attack!');
       selectedPlayerAtk = AttackType.FIRE;
+    } else {
+      Timer timer = game.time.create();
+      Text text;
+      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+      text = game.add.text(150, 200, 'You must select a character to attack!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     }
   }
  
@@ -425,6 +461,15 @@ class MapRenderState extends State
     if (selected != null && selected.hasCharge(AttackType.EARTH)) {
       print('Player mode - Earth attack!');
       selectedPlayerAtk = AttackType.EARTH;
+    } else {
+      Timer timer = game.time.create();
+      Text text;
+      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+      text = game.add.text(150, 200, 'You must select a character to attack!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     }
   }
  
@@ -433,6 +478,15 @@ class MapRenderState extends State
     if (selected != null && selected.hasCharge(AttackType.AIR)) {
       print('Player mode - Air attack!');
       selectedPlayerAtk = AttackType.AIR;
+    } else {
+      Timer timer = game.time.create();
+      Text text;
+      TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
+      text = game.add.text(150, 200, 'You must select a character to attack!', style);
+      timer.add(2000, () {
+        text.destroy();
+      });
+      timer.start();
     }
   }
  
