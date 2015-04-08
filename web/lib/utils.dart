@@ -59,3 +59,21 @@ void redrawHpBar(Game game, Character char)
   bmp.rect(2 + percent + 1, 2, 100 - percent, 20, '#000000');
   char.hpBar.loadTexture(bmp);
 }
+
+void addAtkButtonTooltip(Game game, Sprite button, String tooltip)
+{
+  Sprite tooltipSprite;
+  
+  button.events.onInputOver.add((Sprite sprite, Pointer p) {
+    //window.alert('over button!');
+    BitmapData bmp = game.make.bitmapData(275, 40);
+    bmp.fill(0, 0, 0, 0.5);
+    bmp.ctx.setFillColorRgb(255, 255, 255);
+    bmp.ctx.fillText(tooltip, 15, bmp.height / 2);
+    tooltipSprite = game.add.sprite(button.position.x, button.position.y - 45, bmp);
+  });
+  
+  button.events.onInputOut.add((Sprite sprite, Pointer p) {
+    tooltipSprite.destroy();
+  });
+}

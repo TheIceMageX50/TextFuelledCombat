@@ -122,7 +122,6 @@ class GameMap implements TileBasedMap
         int rand;
         String randKey;
         for (int i = 0; i < _grid.array.length; i++) {
-          temp = '';
           for (int j = 0; j < _grid[0].length; j++) {
             if (i == 0 || j == 0 || i == height - 1 || j == width - 1) {
               //Dealing with a border tile, just roll for a traversable.

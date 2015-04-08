@@ -195,7 +195,7 @@ class MapRenderState extends State
     }
    
     //Add buttons to the world
-    waitButton = addGameButton(game, 0, 438, 'button', 'Wait', onWaitClicked);
+    waitButton = addGameButton(game, 0, 400, 'button', 'Wait', onWaitClicked);
     attackButtons[AttackType.SWORD] = addGameButton(
         game,
         0,
@@ -238,6 +238,14 @@ class MapRenderState extends State
         'button',
         'Earth Magic',
         onEarthButtonClicked);
+    
+    addAtkButtonTooltip(game, attackButtons[AttackType.SWORD], 'Attack with a sword!');
+    addAtkButtonTooltip(game, attackButtons[AttackType.MACE], 'Attack with a mace!');
+    addAtkButtonTooltip(game, attackButtons[AttackType.WATER], 'Attack with water magic! Does extra damage to Devils.');
+    addAtkButtonTooltip(game, attackButtons[AttackType.FIRE], 'Attack with fire magic!');
+    addAtkButtonTooltip(game, attackButtons[AttackType.AIR], 'Attack with air magic!');
+    addAtkButtonTooltip(game, attackButtons[AttackType.EARTH], 'Attack with earth magic!');
+    
     TextStyle style2 = new TextStyle(fill:'#FFFFFF' , font:'20px Arial' , align:'left');
     chargeDisplays[AttackType.SWORD] = game.add.text(0, 545, '--', style2);
     chargeDisplays[AttackType.MACE] = game.add.text(110, 545, '--', style2);

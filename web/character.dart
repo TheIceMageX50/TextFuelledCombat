@@ -142,7 +142,6 @@ class Character implements Mover
       //character certainly can't get there
       // =>error
     } else {
-      String blah;
       Path path;
       //Pathfinder should only be used *within* this function iff moving a player char.
       if (finder != null) {
