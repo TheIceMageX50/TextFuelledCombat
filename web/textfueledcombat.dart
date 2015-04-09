@@ -314,6 +314,11 @@ class MapRenderState extends State
        
           if (target.hpCurrent <= 0) {
             map.enemyTeam.remove(target);
+            if (map.enemyTeam.isEmpty) {
+              playerVictory();
+              //return to avoid unnecessary stuff like playing enemy turn when they are all dead...
+              return;
+            }
           }
         } else {
           info = game.add
@@ -404,7 +409,6 @@ class MapRenderState extends State
     TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
     
     if (selected != null && selected.hasCharge(AttackType.SWORD)) {
-      print('Player mode - Sword attack!');
       selectedPlayerAtk = AttackType.SWORD;
       text = game.add.text(150, 200, 'Selected Sword attack!', style);
       timer.add(2000, () {
@@ -427,8 +431,7 @@ class MapRenderState extends State
     TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
     
     if (selected != null && selected.hasCharge(AttackType.MACE)) {
-      print('Player mode - Sword attack!');
-      selectedPlayerAtk = AttackType.SWORD;
+      selectedPlayerAtk = AttackType.MACE;
       text = game.add.text(150, 200, 'Selected Mace attack!', style);
       timer.add(2000, () {
         text.destroy();
@@ -450,8 +453,7 @@ class MapRenderState extends State
     TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
     
     if (selected != null && selected.hasCharge(AttackType.WATER)) {
-      print('Player mode - Sword attack!');
-      selectedPlayerAtk = AttackType.SWORD;
+      selectedPlayerAtk = AttackType.WATER;
       text = game.add.text(150, 200, 'Selected Water magic!', style);
       timer.add(2000, () {
         text.destroy();
@@ -473,8 +475,7 @@ class MapRenderState extends State
     TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
     
     if (selected != null && selected.hasCharge(AttackType.FIRE)) {
-      print('Player mode - Sword attack!');
-      selectedPlayerAtk = AttackType.SWORD;
+      selectedPlayerAtk = AttackType.FIRE;
       text = game.add.text(150, 200, 'Selected Fire magic!', style);
       timer.add(2000, () {
         text.destroy();
@@ -496,8 +497,7 @@ class MapRenderState extends State
     TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
     
     if (selected != null && selected.hasCharge(AttackType.EARTH)) {
-      print('Player mode - Sword attack!');
-      selectedPlayerAtk = AttackType.SWORD;
+      selectedPlayerAtk = AttackType.EARTH;
       text = game.add.text(150, 200, 'Selected Earth magic!', style);
       timer.add(2000, () {
         text.destroy();
@@ -519,8 +519,7 @@ class MapRenderState extends State
     TextStyle style = new TextStyle(fill:'#000000' , font:'25px Arial' , align:'left');
     
     if (selected != null && selected.hasCharge(AttackType.AIR)) {
-      print('Player mode - Sword attack!');
-      selectedPlayerAtk = AttackType.SWORD;
+      selectedPlayerAtk = AttackType.AIR;
       text = game.add.text(150, 200, 'Selected Air magic!', style);
       timer.add(2000, () {
         text.destroy();
@@ -669,6 +668,21 @@ class MapRenderState extends State
       case AttackType.EARTH: game.sound.play('earth');
       break;
     }
+  }
+  
+  void playerVictory()
+  {
+    BitmapData bmp = game.make.bitmapData(world.width, world.height);
+    bmp.fill(0, 0, 0, 0.5);
+    TextStyle style = new TextStyle(fill:'#ffffff' , font:'25px Arial' , align:'left');
+    game.add.sprite(0, 0, bmp);
+    game.add.text(150, world.centerY, 'You win! Reload to play again.', style);
+    map.playerTeam.forEach((Character player) {
+      player.sprite.inputEnabled = false;
+    });
+    attackButtons.forEach((_, Sprite sprite) {
+      sprite.inputEnabled = false;
+    });
   }
 }
 

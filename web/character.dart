@@ -77,7 +77,7 @@ class Character implements Mover
       case CharType.PLAYER: 
         _hpMax = 100;
         _hpCurrent = 100;
-        _attackPower = 10;
+        _attackPower = 15;
         _mobility = 7;
         _weaknesses.add(AttackType.MACE);
       break;
